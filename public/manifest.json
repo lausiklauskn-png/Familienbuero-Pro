@@ -1,0 +1,30 @@
+{
+  "name": "Familienbüro Pro",
+  "short_name": "Familienbüro",
+  "description": "Word-, Excel- und PowerPoint-Dateien öffnen, bearbeiten und speichern – auf dem eigenen Gerät.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f2f7fa",
+  "theme_color": "#0b3154",
+  "icons": [
+    {
+      "src": "./icons/document-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/document-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/document-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "lang": "de"
+}
