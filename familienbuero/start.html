@@ -1,0 +1,109 @@
+<!doctype html>
+<!-- Startseite von Familienbüro Pro. Quelle: familienbuero/start.html (bin/build-pages.mjs kopiert sie nach index.html). -->
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/icons/document.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/document-32.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/document-180.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <script>
+      (function () {
+        try {
+          var q = location.search;
+          var deep = /[?&](file|src|new|open|embed|embedded|readonly|agent)(=|&|$)/.test(q);
+          var framed = window.parent !== window;
+          if (deep || framed) {
+            location.replace('/editor' + (q || (framed ? '?embed=1' : '')) + location.hash);
+          }
+        } catch (e) {}
+      })();
+    </script>
+    <script>try { localStorage.setItem('document-lang', 'de'); } catch (e) {}</script>
+    <meta name="theme-color" content="#0b3154" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <title>Familienbüro Pro – Schreiben, Tabellen, Folien</title>
+    <meta name="description" content="Word-, Excel- und PowerPoint-Dateien öffnen, bearbeiten und speichern. Ohne Konto, ohne Abo, alles bleibt auf dem Gerät." />
+    <meta name="robots" content="noindex" />
+    <style>
+      :root { --navy:#0b3154; --ink:#15283a; --muted:#627181; --line:#d8e2ea; --canvas:#f2f7fa; --paper:#fff; --teal:#087f7a; --blue:#1f5fa6; }
+      * { box-sizing:border-box; }
+      html, body { margin:0; background:var(--canvas); color:var(--ink); font-family:"Segoe UI",system-ui,Roboto,Arial,sans-serif; }
+      a { color:inherit; text-decoration:none; }
+      .kopf { background:var(--navy); color:#fff; padding:12px 16px; display:flex; align-items:center; gap:12px; }
+      .kopf img { width:44px; height:44px; border-radius:11px; }
+      .kopf b { font-size:18px; letter-spacing:.2px; }
+      .kopf span { font-size:13px; opacity:.8; }
+      main { max-width:1040px; margin:0 auto; padding:22px 16px 40px; }
+      h1 { font-size:clamp(24px,4.2vw,34px); margin:6px 0 6px; color:var(--navy); }
+      .unter { margin:0 0 20px; color:var(--muted); font-size:16px; line-height:1.5; max-width:60ch; }
+      .kacheln { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+      .kachel { background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:16px 14px; min-height:132px; display:flex; flex-direction:column; gap:6px;
+                cursor:pointer; font:inherit; color:inherit; text-align:left; box-shadow:0 1px 2px rgba(11,49,84,.06); transition:transform .12s, box-shadow .12s; }
+      .kachel:hover, .kachel:focus-visible { transform:translateY(-2px); box-shadow:0 6px 16px rgba(11,49,84,.14); outline:none; }
+      .kachel i { width:44px; height:44px; border-radius:11px; display:grid; place-items:center; color:#fff; font-style:normal; font-weight:700; font-size:22px; }
+      .kachel b { font-size:18px; }
+      .kachel small { color:var(--muted); font-size:13px; line-height:1.35; }
+      .s i { background:linear-gradient(160deg,#3f8fd0,#1f5fa6); } .t i { background:linear-gradient(160deg,#2aa66a,#167249); }
+      .f i { background:linear-gradient(160deg,#e08a3c,#b85c12); } .o i { background:linear-gradient(160deg,#17a79f,#087f7a); }
+      .o { border-color:var(--teal); }
+      .zuletzt { margin:16px 0 0; display:flex; flex-wrap:wrap; gap:8px 14px; align-items:center; font-size:14px; color:var(--muted); }
+      .zuletzt a { color:var(--blue); font-weight:600; }
+      h2 { font-size:18px; color:var(--navy); margin:30px 0 10px; }
+      .punkte { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; padding:0; margin:0; list-style:none; }
+      .punkte li { background:var(--paper); border:1px solid var(--line); border-left:4px solid var(--teal); border-radius:10px; padding:10px 12px; font-size:14px; line-height:1.45; }
+      .punkte.bald li { border-left-color:#b9c6d3; color:var(--muted); }
+      .punkte b { color:var(--ink); }
+      footer { max-width:1040px; margin:0 auto; padding:0 16px 30px; color:var(--muted); font-size:12px; line-height:1.55; }
+      footer a { text-decoration:underline; }
+      @media (max-width:820px) { .kacheln { grid-template-columns:repeat(2,1fr); } .punkte { grid-template-columns:1fr; } }
+    </style>
+    <script src="/open-local.js" defer></script>
+    <script src="/landing-prefetch.js" defer></script>
+    <script src="/history-recent.js" defer></script>
+  </head>
+  <body>
+    <div class="kopf">
+      <img src="/icons/document-192.png" alt="" />
+      <div><b>Familienbüro Pro</b><br /><span>Schreiben · Tabellen · Folien</span></div>
+    </div>
+    <main>
+      <section id="landing-hero">
+        <h1>Dein Büro für zu Hause.</h1>
+        <p class="unter">Word-, Excel- und PowerPoint-Dateien öffnen, bearbeiten und speichern – ohne Konto und ohne Abo. Alles bleibt auf deinem Gerät.</p>
+        <div class="kacheln">
+          <button class="kachel o" id="hero-open" type="button" data-open-local="/editor?locale=de&open=local"><i>↥</i><b>Datei öffnen</b><small>Word, Excel, PowerPoint, PDF – auch alte .doc und .xls</small></button>
+          <a class="kachel s" id="hero-new-docx" href="/editor?locale=de&new=docx" data-prefetch="docx"><i>S</i><b>Schreiben</b><small>Neues Dokument: Brief, Text, Bericht</small></a>
+          <a class="kachel t" id="hero-new-xlsx" href="/editor?locale=de&new=xlsx" data-prefetch="xlsx"><i>T</i><b>Tabellen</b><small>Neue Tabelle: rechnen, sortieren, Diagramme</small></a>
+          <a class="kachel f" id="hero-new-pptx" href="/editor?locale=de&new=pptx" data-prefetch="pptx"><i>F</i><b>Folien</b><small>Neue Präsentation</small></a>
+        </div>
+        <div class="zuletzt">
+          <span data-recent-slot data-recent-locale="de" data-recent-label="Weiterarbeiten an" hidden></span>
+          <a class="recent-all" href="/history?locale=de">Zuletzt bearbeitet ›</a>
+          <span>Arbeitskopien bleiben 7 Tage in diesem Browser. Wichtiges immer als Datei speichern.</span>
+        </div>
+      </section>
+      <h2>Was hier anders ist</h2>
+      <ul class="punkte">
+        <li><b>Kein Abo, kein Konto.</b> Öffnen und loslegen.</li>
+        <li><b>Nichts wird hochgeladen.</b> Die Dateien bleiben auf dem Gerät.</li>
+        <li><b>Läuft ohne Internet,</b> sobald die App einmal geladen ist.</li>
+        <li><b>Als App installierbar</b> – auf Handy, Tablet und PC.</li>
+      </ul>
+      <h2>Kommt als Nächstes</h2>
+      <ul class="punkte bald">
+        <li><b>Lesen</b> mit Markieren und Notizen</li>
+        <li><b>Eigene Schriften</b> importieren</li>
+        <li><b>Post</b> über Private Brain Pro</li>
+        <li><b>Verbindung zur Familienakte</b> – Unterlagen direkt bearbeiten</li>
+      </ul>
+    </main>
+    <footer>
+      Freie Software unter AGPL-3.0. Aufgebaut auf den ONLYOFFICE-Editoren und dem Projekt
+      <a href="https://github.com/ranuts/document">ranuts/document</a>; Lizenz und Herkunft: <a href="/LICENSE">LICENSE</a>, <a href="/NOTICE">NOTICE</a>.
+      ONLYOFFICE ist eine Marke von Ascensio System SIA; dies ist kein offizielles ONLYOFFICE-Produkt. Word, Excel und PowerPoint sind Marken von Microsoft und bezeichnen hier nur die Dateiformate.
+    </footer>
+    <script src="/sw-register.js" defer></script>
+  </body>
+</html>
