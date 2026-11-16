@@ -92,9 +92,18 @@
         padding: 1px 6px;
         border: 1px solid rgba(255, 255, 255, 0.45);
         border-radius: 6px;
+        background: none;
+        color: inherit;
+        font: inherit;
         font-size: 11px;
-        opacity: 1;
+        cursor: pointer;
         vertical-align: 2px;
+      }
+      .fassung.neu {
+        background: #ffd24a;
+        border-color: #ffd24a;
+        color: #3a2a00;
+        font-weight: 700;
       }
       .kopf-knopf {
         flex: 0 0 auto;
@@ -108,11 +117,6 @@
         font-size: 14px;
         font-weight: 700;
         cursor: pointer;
-      }
-      .kopf-knopf.fahne {
-        background: #ffd24a;
-        border-color: #ffd24a;
-        color: #3a2a00;
       }
       .kopf img {
         width: 44px;
@@ -282,7 +286,7 @@
           white-space: nowrap;
         }
         .kopf-name br,
-        .kopf-name span:not(.fassung) {
+        .kopf-name span {
           display: none;
         }
         .kopf-knopf {
@@ -308,18 +312,11 @@
     <div class="kopf">
       <img src="./icons/document-192.png" alt="" />
       <div class="kopf-name">
-        <span class="fassung" id="fassung" title="Fassung">0.1.0</span><b>Familienbüro Pro</b><br />
+        <button type="button" class="fassung" id="fassung" title="Fassung – antippen prüft, ob es eine neuere gibt">
+          0.1.0</button
+        ><b>Familienbüro Pro</b><br />
         <span>Schreiben · Tabellen · Folien</span>
       </div>
-      <button
-        type="button"
-        class="kopf-knopf fahne"
-        id="update-fahne"
-        hidden
-        title="Eine neue Fassung ist da. Antippen lädt sie."
-      >
-        ⚑ Update
-      </button>
       <button
         type="button"
         class="kopf-knopf"
@@ -425,26 +422,58 @@
           angebot = null;
         });
 
-        // Update-Fähnchen: übernimmt ein neuer Offline-Worker die Seite, liegt
-        // eine neue Fassung bereit. Antippen lädt sie.
-        var fahne = document.getElementById('update-fahne');
-        fahne.addEventListener('click', function () {
-          location.reload();
+        // Fassung und Update: die Versionsnummer ist der Knopf. Antippen prüft,
+        // ob es eine neuere Fassung gibt. Liegt eine bereit, erscheint das
+        // Fähnchen in der Versionsnummer; Antippen lädt sie dann.
+        var fassung = document.getElementById('fassung');
+        var nummer = fassung.textContent.trim();
+        fassung.textContent = nummer;
+        var bereit = false;
+        function fahneZeigen() {
+          bereit = true;
+          fassung.classList.add('neu');
+          fassung.textContent = '⚑ ' + nummer;
+          fassung.title = 'Eine neue Fassung ist da. Antippen lädt sie.';
+        }
+        function kurzZeigen(text) {
+          fassung.textContent = text;
+          setTimeout(function () {
+            if (!bereit) fassung.textContent = nummer;
+          }, 1800);
+        }
+        fassung.addEventListener('click', function () {
+          if (bereit) {
+            location.reload();
+            return;
+          }
+          if (!('serviceWorker' in navigator)) return;
+          kurzZeigen(nummer + ' …');
+          navigator.serviceWorker
+            .getRegistration()
+            .then(function (anmeldung) {
+              return anmeldung ? anmeldung.update() : null;
+            })
+            .then(function () {
+              if (!bereit) kurzZeigen(nummer + ' ✓ aktuell');
+            })
+            .catch(function () {
+              if (!bereit) kurzZeigen(nummer + ' – kein Netz');
+            });
         });
         if ('serviceWorker' in navigator) {
           var hatteWorker = Boolean(navigator.serviceWorker.controller);
           navigator.serviceWorker.addEventListener('controllerchange', function () {
-            if (hatteWorker) fahne.hidden = false;
+            if (hatteWorker) fahneZeigen();
             hatteWorker = true;
           });
           navigator.serviceWorker.getRegistration().then(function (anmeldung) {
             if (!anmeldung) return;
-            if (anmeldung.waiting && navigator.serviceWorker.controller) fahne.hidden = false;
+            if (anmeldung.waiting && navigator.serviceWorker.controller) fahneZeigen();
             anmeldung.addEventListener('updatefound', function () {
               var neu = anmeldung.installing;
               if (!neu) return;
               neu.addEventListener('statechange', function () {
-                if (neu.state === 'installed' && navigator.serviceWorker.controller) fahne.hidden = false;
+                if (neu.state === 'installed' && navigator.serviceWorker.controller) fahneZeigen();
               });
             });
           });
