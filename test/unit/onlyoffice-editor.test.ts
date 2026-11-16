@@ -533,7 +533,7 @@ describe('onlyoffice-editor', () => {
       });
     });
 
-    it('always passes a non-empty local user to avoid the getInitials crash (#25)', async () => {
+    it('always passes a non-empty Guest user to avoid the getInitials crash (#25)', async () => {
       const config = await createAndGetConfig({
         fileName: 'preview.docx',
         fileType: 'docx',
@@ -541,7 +541,7 @@ describe('onlyoffice-editor', () => {
         readonly: true,
       });
 
-      expect(config.editorConfig.user).toEqual({ id: 'local-user', name: 'Ich' });
+      expect(config.editorConfig.user).toEqual({ id: 'local-user', name: 'Guest' });
       // readonly:true still mounts with full edit permissions: the lock is
       // applied post-load via asc_setRestriction so it stays togglable at
       // runtime (a view-mode mount could never switch back to edit).

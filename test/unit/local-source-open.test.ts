@@ -178,26 +178,10 @@ describe('local open retains its reload source', () => {
   });
 });
 
-// Familienbüro Pro: neue Dokumente heißen deutsch. Tabellen, Folien und die
-// übrigen Arten entstehen leer im Kern; das Textdokument startet aus der
-// eingebauten deutschen Vorlage und geht darum als Datei in die Umwandlung.
-it.each([
-  ['.xlsx', 'Tabelle'],
-  ['.pptx', 'Folien'],
-  ['.pdf', 'Dokument'],
-  ['.csv', 'Dokument'],
-])('names a new %s document without losing its extension', async (ext, name) => {
-  await onCreateNew(ext);
-  expect(convert).toHaveBeenCalledWith(expect.objectContaining({ fileName: `${name}${ext}`, isNew: true }));
-});
-
-it('starts a new .docx document from the built-in German template', async () => {
-  await onCreateNew('.docx');
-  const call = convert.mock.calls.at(-1)?.[0] as { fileName: string; isNew: boolean; file?: File };
-  expect(call.fileName).toBe('Dokument.docx');
-  expect(call.isNew).toBe(false);
-  expect(call.file?.name).toBe('Dokument.docx');
-  // Eine .docx ist ein ZIP: beginnt mit "PK".
-  const head = new Uint8Array(await call.file!.slice(0, 2).arrayBuffer());
-  expect([head[0], head[1]]).toEqual([0x50, 0x4b]);
-});
+it.each(['.docx', '.xlsx', '.pptx', '.pdf', '.csv'])(
+  'names a new %s document Untitled without losing its extension',
+  async (ext) => {
+    await onCreateNew(ext);
+    expect(convert).toHaveBeenCalledWith(expect.objectContaining({ fileName: `Untitled${ext}`, isNew: true }));
+  },
+);

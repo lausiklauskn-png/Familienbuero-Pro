@@ -185,17 +185,18 @@ function createPersonalEditorInstance(config: {
       // spreadsheet editor (found by the UI crawl).
       coEditing: { mode: 'fast', change: false },
       lang: editorLang,
-      region: 'de-DE',
+      // Familienbüro Pro: deutsche Zahlen- und Datumsregeln nur bei deutscher Oberfläche.
+      ...(editorLang.startsWith('de') ? { region: 'de-DE' } : {}),
       user: {
         id: 'local-user',
-        name: 'Ich',
+        name: editorLang.startsWith('de') ? 'Ich' : 'Guest',
       },
       customization: {
         ...(!isEmbedMode()
           ? { goback: { url: new URL('./', location.href).href, blank: false, text: t('editorBackHome') } }
           : {}),
         help: false,
-        unit: 'cm',
+        ...(editorLang.startsWith('de') ? { unit: 'cm' } : {}),
         // Keep About reachable for copyright, version, license and source
         // information. Product marks are hidden separately; see NOTICE.
         hideRightMenu: true,
@@ -215,7 +216,7 @@ function createPersonalEditorInstance(config: {
         },
         anonymous: {
           request: false,
-          label: 'Ich',
+          label: editorLang.startsWith('de') ? 'Ich' : 'Guest',
         },
       },
     },

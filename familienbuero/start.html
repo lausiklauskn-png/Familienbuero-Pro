@@ -21,9 +21,23 @@
       })();
     </script>
     <script>
-      try {
-        localStorage.setItem('document-lang', 'de');
-      } catch (e) {}
+      // Die Oberfläche folgt dem Gerät: Deutsch auf deutsch eingestellten Geräten,
+      // sonst Englisch. Die Verweise unten bekommen die passende Sprache.
+      (function () {
+        var sprache = /^de\b/i.test(navigator.language || '') ? 'de' : 'en';
+        try {
+          localStorage.setItem('document-lang', sprache);
+        } catch (e) {}
+        document.addEventListener('DOMContentLoaded', function () {
+          document.querySelectorAll('[data-sprache]').forEach(function (el) {
+            ['href', 'data-open-local'].forEach(function (name) {
+              var wert = el.getAttribute(name);
+              if (wert) el.setAttribute(name, wert.replace('locale=de', 'locale=' + sprache));
+            });
+            if (el.hasAttribute('data-recent-locale')) el.setAttribute('data-recent-locale', sprache);
+          });
+        });
+      })();
     </script>
     <meta name="theme-color" content="#0b3154" />
     <meta name="mobile-web-app-capable" content="yes" />
@@ -246,22 +260,34 @@
           auf deinem Gerät.
         </p>
         <div class="kacheln">
-          <button class="kachel o" id="hero-open" type="button" data-open-local="./editor?locale=de&open=local">
+          <button
+            class="kachel o"
+            id="hero-open"
+            data-sprache
+            type="button"
+            data-open-local="./editor?locale=de&open=local"
+          >
             <i>↥</i><b>Datei öffnen</b><small>Word, Excel, PowerPoint, PDF – auch alte .doc und .xls</small>
           </button>
-          <a class="kachel s" id="hero-new-docx" href="./editor?locale=de&new=docx" data-prefetch="docx"
+          <a class="kachel s" id="hero-new-docx" data-sprache href="./editor?locale=de&new=docx" data-prefetch="docx"
             ><i>S</i><b>Schreiben</b><small>Neues Dokument: Brief, Text, Bericht</small></a
           >
-          <a class="kachel t" id="hero-new-xlsx" href="./editor?locale=de&new=xlsx" data-prefetch="xlsx"
+          <a class="kachel t" id="hero-new-xlsx" data-sprache href="./editor?locale=de&new=xlsx" data-prefetch="xlsx"
             ><i>T</i><b>Tabellen</b><small>Neue Tabelle: rechnen, sortieren, Diagramme</small></a
           >
-          <a class="kachel f" id="hero-new-pptx" href="./editor?locale=de&new=pptx" data-prefetch="pptx"
+          <a class="kachel f" id="hero-new-pptx" data-sprache href="./editor?locale=de&new=pptx" data-prefetch="pptx"
             ><i>F</i><b>Folien</b><small>Neue Präsentation</small></a
           >
         </div>
         <div class="zuletzt">
-          <span data-recent-slot data-recent-locale="de" data-recent-label="Weiterarbeiten an" hidden></span>
-          <a class="recent-all" href="./history?locale=de">Zuletzt bearbeitet ›</a>
+          <span
+            data-recent-slot
+            data-sprache
+            data-recent-locale="de"
+            data-recent-label="Weiterarbeiten an"
+            hidden
+          ></span>
+          <a class="recent-all" data-sprache href="./history?locale=de">Zuletzt bearbeitet ›</a>
           <span>Arbeitskopien bleiben 7 Tage in diesem Browser. Wichtiges immer als Datei speichern.</span>
         </div>
       </section>

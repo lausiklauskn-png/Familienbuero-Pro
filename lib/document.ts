@@ -3,7 +3,7 @@ import { fetchRemoteDocument } from './remote-document';
 import { remoteFileName } from './remote-file-name';
 import { View } from 'ranui/builder';
 import { setDocmentObj } from '@ranuts/shared/store';
-import { t } from '@ranuts/shared/i18n';
+import { getLanguage, t } from '@ranuts/shared/i18n';
 import 'ranui/message';
 import { handleDocumentOperation, loadEditorApi } from './converter';
 import { showLoading } from './loading';
@@ -65,14 +65,19 @@ export const onCreateNew = async (ext: string, options?: { docId?: string }): Pr
     if (hideControlPanelFn) {
       hideControlPanelFn();
     }
-    const fileName = (ext === '.xlsx' ? 'Tabelle' : ext === '.pptx' ? 'Folien' : 'Dokument') + ext;
+    // Familienbüro Pro: auf Deutsch eingestellten Geräten heißen neue Dateien
+    // deutsch und das Textdokument startet aus der deutschen Vorlage; in jeder
+    // anderen Sprache gilt das Verhalten der Vorlage unverändert.
+    const deutsch = getLanguage() === 'de';
+    const fileName =
+      (deutsch ? (ext === '.xlsx' ? 'Tabelle' : ext === '.pptx' ? 'Folien' : 'Dokument') : 'Untitled') + ext;
     await loadEditorApi();
     opening.assertCurrent();
     // Familienbüro Pro: ein neues Textdokument startet aus unserer deutschen
     // Vorlage (A4, Calibri 11, Sprache Deutsch) statt aus dem Leerdokument des
     // Kerns (Letter, ostasiatische Schrift, Englisch). Die Vorlage steckt im
     // Programm selbst, es wird nichts nachgeladen.
-    const vorlage = ext === '.docx' ? leeresTextdokument(fileName) : undefined;
+    const vorlage = deutsch && ext === '.docx' ? leeresTextdokument(fileName) : undefined;
     await handleDocumentOperation(
       vorlage
         ? { file: vorlage, fileName, isNew: false, signal: opening.signal, isCurrent: opening.isCurrent }

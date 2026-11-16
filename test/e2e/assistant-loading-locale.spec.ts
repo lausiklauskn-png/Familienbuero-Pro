@@ -2,10 +2,8 @@ import { expect, test } from './lib/l0';
 import { buildDocx } from './lib/ooxml';
 import { mockApi } from './lib/mock-api';
 
-// Familienbüro Pro: the start page is German (familienbuero/start.html) and pins
-// the language, so an old Chinese preference must not leak into the editor.
 for (const entry of ['docx', 'xlsx', 'pptx', 'open'] as const) {
-  test(`German start page keeps ${entry} and its assistant German after a Chinese preference`, async ({ page }) => {
+  test(`English homepage keeps ${entry} and its assistant English after a Chinese preference`, async ({ page }) => {
     test.setTimeout(90_000);
     await page.addInitScript(() => {
       localStorage.setItem('document-lang', 'zh');
@@ -21,17 +19,17 @@ for (const entry of ['docx', 'xlsx', 'pptx', 'open'] as const) {
       ).setFiles({
         name: 'locale-test.docx',
         mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        buffer: Buffer.from(buildDocx('Deutsches Dokument.')),
+        buffer: Buffer.from(buildDocx('English document.')),
       });
     } else await page.locator(`#hero-new-${entry}`).click();
     await page.waitForURL('**/editor?**');
-    expect(new URL(page.url()).searchParams.get('locale')).toBe('de');
+    expect(new URL(page.url()).searchParams.get('locale')).toBe('en');
     await page.waitForFunction(() => Boolean(window.__ooFrames.readyEditor()));
-    await expect(page.locator('html')).toHaveAttribute('lang', 'de');
+    await expect(page.locator('html')).toHaveAttribute('lang', 'en');
     const editor = page.frameLocator('iframe[name="frameEditor"]');
-    await expect(editor.locator('.ribtab').filter({ hasText: /^Startseite$/ })).toBeVisible();
+    await expect(editor.locator('.ribtab').filter({ hasText: /^Home$/ })).toBeVisible();
     await editor.locator('.agent-sidebar-entry').click();
-    await expect(page.locator('.agent-panel-title')).toHaveText('KI-Assistent');
+    await expect(page.locator('.agent-panel-title')).toHaveText('AI Assistant');
   });
 }
 
