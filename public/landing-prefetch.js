@@ -36,7 +36,7 @@
   var BASIS = (function () {
     try {
       return new URL('./', document.currentScript.src).pathname.replace(/\/$/, '');
-    } catch (e) {
+    } catch {
       return '';
     }
   })();

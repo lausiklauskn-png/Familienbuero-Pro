@@ -1,7 +1,5 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { matchesGlob, resolve } from 'node:path';
-import { spawnSync } from 'node:child_process';
-import { createRequire } from 'node:module';
 import { describe, expect, it } from 'vitest';
 
 /**
@@ -313,12 +311,68 @@ describe('bin/test-e2e-docker.sh', () => {
   });
 });
 
-/**
- * The nightly runs the PR-time specs on two engines the gate does not cover,
- * and the real-document matrix on a public corpus. Both have a way of going
- * red for a reason that is not a defect in this repository, and a nightly that
- * is red every morning is a nightly nobody reads.
- */
+// Familienbüro Pro: allgemeine Regeln des Repos. In der Vorlage standen sie im Block
+// des nächtlichen Arbeitsablaufs, den es hier nicht gibt; dessen eigene Tests sind entfallen.
+describe('repository contracts', () => {
+  it('skips a device-emulating spec by project, not by browser name', () => {
+    // `devices['Pixel 5']` carries `defaultBrowserType: 'chromium'`, which wins
+    // over the project's browser -- so under the webkit/firefox projects
+    // `browserName` reads 'chromium', a `browserName !== 'chromium'` guard
+    // never fires, and Playwright tries to launch a browser this job does not
+    // install. That was 16 of the 20 red rows on 2026-08-21.
+    const specs = readdirSync(resolve(ROOT, 'test/e2e'))
+      .filter((file) => file.endsWith('.spec.ts'))
+      .map((file) => ({ file, body: readFileSync(resolve(ROOT, 'test/e2e', file), 'utf8') }))
+      .filter(({ body }) => /test\.use\(\{\s*\.\.\.devices\[/.test(body));
+
+    expect(specs.length).toBeGreaterThan(0);
+    for (const { file, body } of specs) {
+      expect(body, `${file} guards on browserName under a device override`).not.toMatch(
+        /test\.skip\(\(\{ browserName \}\)/,
+      );
+      expect(body, `${file} has no project guard`).toMatch(/test\.skip\(\(\{ projectName \}\)/);
+    }
+    // The fixture the guard reads; `browserName` is built in, this one is ours.
+    expect(readFileSync(resolve(ROOT, 'test/e2e/lib/l0.ts'), 'utf8')).toMatch(/projectName: \[/);
+  });
+
+  it('fails the lint on a warning, and lints the scripts we actually ship', () => {
+    // oxlint exits 0 on warnings, so `lint:ts` used to be green with warnings
+    // in it -- two were introduced and merged on 2026-09-12 without anything
+    // noticing. --deny-warnings is what makes the job mean something.
+    const pkg = JSON.parse(readFileSync(resolve(ROOT, 'package.json'), 'utf8')) as {
+      scripts: Record<string, string>;
+    };
+    expect(pkg.scripts['lint:ts']).toBe('node bin/archive-quality.mjs lint && pnpm run tsc');
+    expect(pkg.scripts.tsc).toBe("pnpm --recursive --filter '@ranuts/*' build && tsc --noEmit");
+    const archiveGate = readFileSync(resolve(ROOT, 'bin/archive-quality.mjs'), 'utf8');
+    expect(archiveGate).toContain("'oxlint'");
+    expect(archiveGate).toContain("'--deny-warnings'");
+    expect(archiveGate).toContain('verifyArchive(root, manifest)');
+    const archive = JSON.parse(readFileSync(resolve(ROOT, 'docs/evaluations/archive-integrity.json'), 'utf8')) as {
+      files: { path: string }[];
+    };
+    expect(archive.files.length).toBeGreaterThan(0);
+    for (const { path } of archive.files) expect(path).toMatch(/^docs\/evaluations\/[\w.-]+\.(json|mjs|md)$/);
+
+    // public/ used to be ignored wholesale, which took our own deploy-coupled
+    // scripts out of the lint along with the vendored trees: sw.js alone is
+    // ~500 lines of routing that decides whether a deploy reaches anybody.
+    const oxlint = JSON.parse(readFileSync(resolve(ROOT, '.oxlintrc.json'), 'utf8')) as {
+      ignorePatterns: string[];
+    };
+    expect(oxlint.ignorePatterns).not.toContain('**/public/**');
+    for (const vendored of ['public/sdkjs/**', 'public/web-apps/**', 'public/fonts/**']) {
+      expect(oxlint.ignorePatterns, vendored).toContain(vendored);
+    }
+    // Our own scripts can sit next to a vendored bundle (the SheetJS worker beside
+    // xlsx.full.min.js); a directory-wide ignore there silently drops them.
+    for (const own of ['public/sw.js', 'public/libs/sheetjs/convert.worker.js']) {
+      const ignoredBy = oxlint.ignorePatterns.filter((pattern) => matchesGlob(own, pattern));
+      expect(ignoredBy, own).toEqual([]);
+    }
+  });
+});
 
 it('balances Pages shards at test level without concurrent workerd requests', () => {
   const src = readFileSync(resolve(ROOT, 'playwright.pages.config.ts'), 'utf8');

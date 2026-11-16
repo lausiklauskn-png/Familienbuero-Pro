@@ -40,7 +40,7 @@
   var SW_BASIS = (function () {
     try {
       return new URL('./', document.currentScript.src).pathname;
-    } catch (e) {
+    } catch {
       return '/';
     }
   })();

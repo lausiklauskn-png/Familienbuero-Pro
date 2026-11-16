@@ -70,6 +70,14 @@ node bin/locale-fill.mjs
 
 pnpm vite build $VITE_MODE_ARGS
 
+# Familienbüro Pro: die Geschenkbox ist eine eigenständige Seite. Sie liegt
+# bewusst nicht unter public/, damit die Seitenprüfungen der Vorlage sie nicht
+# für eine ihrer Landeseiten halten; hier kommt sie in den Bau.
+if [ -f "familienbuero/geschenk/index.html" ]; then
+    mkdir -p "$DIST_DIR/geschenk"
+    cp "familienbuero/geschenk/index.html" "$DIST_DIR/geschenk/index.html"
+fi
+
 # Hash exact inline bootstrap bytes after Vite transforms the editor entry.
 # The meta policy travels with the cached shell on every static host.
 node bin/editor-csp.mjs "$DIST_DIR"

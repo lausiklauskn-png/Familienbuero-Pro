@@ -204,10 +204,18 @@
       footer {
         max-width: 1040px;
         margin: 0 auto;
-        padding: 0 16px 30px;
-        color: var(--muted);
-        font-size: 12px;
-        line-height: 1.55;
+        padding: 0 16px 24px;
+        color: #8795a3;
+        font-size: 10px;
+        line-height: 1.5;
+      }
+      footer summary {
+        cursor: pointer;
+        width: max-content;
+      }
+      footer p {
+        margin: 6px 0 0;
+        max-width: 80ch;
       }
       footer a {
         text-decoration: underline;
@@ -273,11 +281,18 @@
       </ul>
     </main>
     <footer>
-      Freie Software unter AGPL-3.0. Aufgebaut auf den ONLYOFFICE-Editoren und dem Projekt
-      <a href="https://github.com/ranuts/document">ranuts/document</a>; Lizenz und Herkunft:
-      <a href="./LICENSE">LICENSE</a>, <a href="./NOTICE">NOTICE</a>. ONLYOFFICE ist eine Marke von Ascensio System SIA;
-      dies ist kein offizielles ONLYOFFICE-Produkt. Word, Excel und PowerPoint sind Marken von Microsoft und bezeichnen
-      hier nur die Dateiformate.
+      <details>
+        <summary>Lizenzhinweis</summary>
+        <p>
+          Freie Software unter AGPL-3.0. Aufgebaut auf den ONLYOFFICE-Editoren und dem Projekt
+          <a href="https://github.com/ranuts/document">ranuts/document</a>; Lizenz und Herkunft:
+          <a href="./LICENSE">LICENSE</a>, <a href="./NOTICE">NOTICE</a>. Quelltext:
+          <a href="https://github.com/lausiklauskn-png/Familienbuero-Pro"
+            >github.com/lausiklauskn-png/Familienbuero-Pro</a
+          >. ONLYOFFICE ist eine Marke von Ascensio System SIA; dies ist kein offizielles ONLYOFFICE-Produkt. Word,
+          Excel und PowerPoint sind Marken von Microsoft und bezeichnen hier nur die Dateiformate.
+        </p>
+      </details>
     </footer>
     <script src="./sw-register.js" defer></script>
   </body>
