@@ -156,7 +156,7 @@ if (documentUrl || isEmbedded || createNewOnLoad || openLocalOnLoad || savedPara
   hideLanding();
 } else {
   // Bare /editor with nothing to open: the landing lives at / now.
-  window.location.replace('/');
+  window.location.replace('./');
 }
 
 void (async () => {
@@ -207,13 +207,13 @@ void (async () => {
       return;
     }
     // Stale deep link (reload, bookmarked URL): nothing pending -- back to the landing.
-    window.location.replace('/');
+    window.location.replace('./');
     return;
   }
 
   // `?saved=` on its own and nothing stored under it: the document it names was
   // deleted or has expired, so there is nothing here to show.
-  if (savedParam && !isEmbedded) window.location.replace('/');
+  if (savedParam && !isEmbedded) window.location.replace('./');
 })();
 
 // No boot-time recovery offer here on purpose. /editor never opens empty (a

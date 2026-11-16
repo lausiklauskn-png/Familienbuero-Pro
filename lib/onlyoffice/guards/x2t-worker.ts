@@ -44,7 +44,23 @@ import { waitForFontSystem, type FontSystemWindow } from '../font-system';
 /** How long an idle worker is kept before its heap is handed back. */
 const IDLE_TERMINATE_MS = 30_000;
 
-const WORKER_URL = '/sdkjs/common/wasm/x2t/x2t.worker.js';
+const WORKER_PATH = '/sdkjs/common/wasm/x2t/x2t.worker.js';
+
+/**
+ * Familienbüro Pro: die App darf in einem Unterordner liegen (GitHub Pages).
+ * Der Rahmen des Editors liegt unter <Ordner>/web-apps/…, die Seite selbst
+ * unter <Ordner>/editor – beide Male ist <Ordner> die Wurzel der App.
+ */
+const workerUrlFor = (win: { location?: { pathname?: string; href?: string } }): string => {
+  try {
+    const pathname = win.location?.pathname ?? '';
+    const cut = pathname.indexOf('/web-apps/');
+    const base = cut >= 0 ? pathname.slice(0, cut) : new URL('./', win.location?.href).pathname.replace(/\/$/, '');
+    return base + WORKER_PATH;
+  } catch {
+    return WORKER_PATH;
+  }
+};
 
 /** Style suffixes the vendor's own fetchFonts uses, keyed by the info field. */
 const FONT_STYLE_SUFFIX: Record<string, string> = {
@@ -93,7 +109,9 @@ class WorkerChannel {
     if (!WorkerCtor) throw new Error('X2T worker unavailable: this engine has no Worker');
     // Constructed through the frame's own Worker so the realm dies with the
     // frame even if nothing terminates it first.
-    const worker = new WorkerCtor(WORKER_URL);
+    const worker = new WorkerCtor(
+      workerUrlFor(this.win as unknown as { location?: { pathname?: string; href?: string } }),
+    );
     worker.onmessage = (event: MessageEvent) => {
       const data = (event.data ?? {}) as { id?: number; ok?: boolean; result?: unknown; error?: string };
       if (data.id === undefined) return; // the worker's initial ready ping

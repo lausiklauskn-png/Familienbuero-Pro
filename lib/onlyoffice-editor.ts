@@ -192,7 +192,7 @@ function createPersonalEditorInstance(config: {
       },
       customization: {
         ...(!isEmbedMode()
-          ? { goback: { url: new URL('/', location.href).href, blank: false, text: t('editorBackHome') } }
+          ? { goback: { url: new URL('./', location.href).href, blank: false, text: t('editorBackHome') } }
           : {}),
         help: false,
         unit: 'cm',

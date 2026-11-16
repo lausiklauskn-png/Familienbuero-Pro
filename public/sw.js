@@ -25,7 +25,14 @@ const isOwnedAppCache = (name) =>
   name.startsWith(RUNTIME_PREFIX) ||
   /^document-editor-(?:(?:dev-)?\d+|v\d+(?:\.\d+)*)$/.test(name);
 
+// Familienbüro Pro: die App darf auch in einem Unterordner liegen (GitHub Pages:
+// /Familienbuero-Pro/). BASE ist dieser Unterordner ohne Schrägstrich am Ende,
+// an der Wurzel leer. lokal() nimmt ihn von einem Pfad wieder ab, damit alle
+// Vergleiche unten weiter mit '/editor', '/assets/…' usw. arbeiten.
+const BASE = new URL('./', self.location.href).pathname.replace(/\/$/, '');
+const lokal = (pfad) => (BASE && pfad.startsWith(BASE + '/') ? pfad.slice(BASE.length) : pfad);
 const ASSETS_TO_CACHE = [
+  './familienbuero/leer.docx',
   './',
   './index.html',
   './editor',
@@ -85,7 +92,7 @@ const MAX_RUNTIME_ITEMS = 2000;
 // runtime cache is named after and exists to keep. Everything ELSE in there
 // belongs to one app build (/assets/<hash>) and dies with it.
 const VENDOR_ASSET = /^\/(?:sdkjs|web-apps|fonts)\//;
-const isVendorAsset = (request) => VENDOR_ASSET.test(new URL(request.url).pathname);
+const isVendorAsset = (request) => VENDOR_ASSET.test(lokal(new URL(request.url).pathname));
 
 // The editor route (`/editor`, `/editor.html`, either with a query string).
 // Everything else this scope serves is a landing or content page, which holds
@@ -93,7 +100,7 @@ const isVendorAsset = (request) => VENDOR_ASSET.test(new URL(request.url).pathna
 const EDITOR_ROUTE = /^\/editor(?:\.html)?\/?$/;
 const isEditorWindow = (url) => {
   try {
-    return EDITOR_ROUTE.test(new URL(url).pathname);
+    return EDITOR_ROUTE.test(lokal(new URL(url).pathname));
   } catch {
     return false;
   }
@@ -213,24 +220,25 @@ const limitCacheSize = (name, maxItems) => {
 async function precacheBootAssets(cache, vendor = false) {
   const assets = new Set();
   for (const path of vendor ? EDITOR_BOOTSTRAP_HTML : ['/index.html', '/editor.html']) {
-    const page = await cache.match(new URL(path, self.location.origin).href);
+    const page = await cache.match(new URL(BASE + path, self.location.origin).href);
     if (!page) throw new Error(`Missing offline shell: ${path}`);
     // Inline legacy code contains document.write strings for removed IE assets.
     // Preserve actual opening tags; do not interpret strings inside scripts.
     const html = (await page.text()).replace(/<script\b([^>]*)>[\s\S]*?<\/script>/gi, '<script$1></script>');
     for (const match of html.matchAll(/(?:src|href)\s*=\s*["']([^"']+)["']/g)) {
-      const url = new URL(match[1], new URL(path, self.location.origin));
+      const url = new URL(match[1], new URL(BASE + path, self.location.origin));
+      const pfad = lokal(url.pathname);
       if (url.origin !== self.location.origin) continue;
       if (vendor) {
-        if (url.pathname.startsWith('/web-apps/') && /\.(js|css)$/.test(url.pathname)) assets.add(url.href);
+        if (pfad.startsWith('/web-apps/') && /\.(js|css)$/.test(pfad)) assets.add(url.href);
         continue;
       }
       if (
-        url.pathname.startsWith('/assets/') ||
-        DEPLOY_COUPLED.test(url.pathname) ||
-        /^\/ran-tokens\.[^/]+\.css$/.test(url.pathname) ||
-        url.pathname === '/ran-fonts/fonts.css' ||
-        url.pathname.startsWith('/ranui-iife/')
+        pfad.startsWith('/assets/') ||
+        DEPLOY_COUPLED.test(pfad) ||
+        /^\/ran-tokens\.[^/]+\.css$/.test(pfad) ||
+        pfad === '/ran-fonts/fonts.css' ||
+        pfad.startsWith('/ranui-iife/')
       )
         assets.add(url.href);
     }
@@ -244,36 +252,38 @@ self.addEventListener('install', (event) => {
     Promise.all([
       // This entry is requested before the app can register its first worker.
       caches.open(RUNTIME_CACHE).then(async (cache) => {
-        await cache.addAll([
-          '/web-apps/apps/api/documents/api.js',
-          '/sdkjs/common/AllFonts.js',
-          // Font menus load these lazily, including when reopening a saved file.
-          // Cache every locale/density variant so first use also works offline.
-          ...['', '_ea'].flatMap((locale) =>
-            ['', '@1.25x', '@1.5x', '@1.75x', '@2x'].map(
-              (density) => `/sdkjs/common/Images/fonts_thumbnail${locale}${density}.png.bin`,
+        await cache.addAll(
+          [
+            '/web-apps/apps/api/documents/api.js',
+            '/sdkjs/common/AllFonts.js',
+            // Font menus load these lazily, including when reopening a saved file.
+            // Cache every locale/density variant so first use also works offline.
+            ...['', '_ea'].flatMap((locale) =>
+              ['', '@1.25x', '@1.5x', '@1.75x', '@2x'].map(
+                (density) => `/sdkjs/common/Images/fonts_thumbnail${locale}${density}.png.bin`,
+              ),
             ),
-          ),
-          '/web-apps/vendor/xregexp/xregexp-all-min.js',
-          '/web-apps/vendor/socketio/socket.io.min.js',
-          '/sdkjs/common/wasm/x2t/x2t_helper.js',
-          // Export must work on the first offline save, before conversion has run.
-          '/sdkjs/common/wasm/x2t/x2t.js',
-          '/sdkjs/common/wasm/x2t/x2t.wasm.br',
-          '/sdkjs/common/wasm/x2t/x2t.worker.js',
-          ...EDITOR_BOOTSTRAP_HTML,
-          ...EDITOR_BOOTSTRAP_HTML.map((path) => path.replace('/index.html', '/app.js')),
-          ...EDITOR_BOOTSTRAP_HTML.map((path) => path.replace('/index.html', '/code.js')),
-          ...EDITOR_BOOTSTRAP_HTML.flatMap((path) =>
-            ['en', 'de', 'es', 'pt', 'ja', 'ko', 'zh'].map((language) =>
-              path.replace('/index.html', `/locale/${language}.json`),
+            '/web-apps/vendor/xregexp/xregexp-all-min.js',
+            '/web-apps/vendor/socketio/socket.io.min.js',
+            '/sdkjs/common/wasm/x2t/x2t_helper.js',
+            // Export must work on the first offline save, before conversion has run.
+            '/sdkjs/common/wasm/x2t/x2t.js',
+            '/sdkjs/common/wasm/x2t/x2t.wasm.br',
+            '/sdkjs/common/wasm/x2t/x2t.worker.js',
+            ...EDITOR_BOOTSTRAP_HTML,
+            ...EDITOR_BOOTSTRAP_HTML.map((path) => path.replace('/index.html', '/app.js')),
+            ...EDITOR_BOOTSTRAP_HTML.map((path) => path.replace('/index.html', '/code.js')),
+            ...EDITOR_BOOTSTRAP_HTML.flatMap((path) =>
+              ['en', 'de', 'es', 'pt', 'ja', 'ko', 'zh'].map((language) =>
+                path.replace('/index.html', `/locale/${language}.json`),
+              ),
             ),
-          ),
-        ]);
+          ].map((pfad) => BASE + pfad),
+        );
         await precacheBootAssets(cache, true);
       }),
       caches.open(CORE_CACHE).then(async (cache) => {
-        await cache.addAll([...ASSETS_TO_CACHE, ...APP_ASSETS_TO_CACHE]);
+        await cache.addAll([...ASSETS_TO_CACHE, ...APP_ASSETS_TO_CACHE.map((pfad) => BASE + pfad)]);
         await precacheBootAssets(cache);
       }),
       // Keep a previously prepared assistant usable after updates, even if its
@@ -486,7 +496,10 @@ async function isolationPolicyEnabled() {
   if (!cachedShellPolicy) {
     cachedShellPolicy = Promise.resolve()
       .then(() =>
-        caches.match(new URL('/editor.html', self.location.origin).href, { cacheName: CORE_CACHE, ignoreVary: true }),
+        caches.match(new URL(BASE + '/editor.html', self.location.origin).href, {
+          cacheName: CORE_CACHE,
+          ignoreVary: true,
+        }),
       )
       .then(
         (shell) =>
@@ -522,6 +535,8 @@ async function withIsolationHeaders(response) {
 
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
+  // Ab hier zählt der Pfad ohne den Unterordner der App.
+  if (url.origin === self.location.origin) url.pathname = lokal(url.pathname);
   const respondWith = (response) =>
     event.respondWith(
       Promise.resolve(response).then((resolved) => {
@@ -558,7 +573,7 @@ self.addEventListener('fetch', (event) => {
   // Match Pages' canonical route offline too. Otherwise the cached root shell
   // would resolve its relative assets under /editor/ and render a blank page.
   if (event.request.mode === 'navigate' && url.pathname === '/editor/') {
-    url.pathname = '/editor';
+    url.pathname = BASE + '/editor';
     event.respondWith(Response.redirect(url.href, 308));
     return;
   }
@@ -650,7 +665,7 @@ self.addEventListener('fetch', (event) => {
     // Local document ids live in the URL; the HTML shell is identical for them.
     // Limit the fallback to editor navigations and this build's core cache.
     if (event.request.mode === 'navigate' && EDITOR_ROUTE.test(url.pathname)) {
-      return core.match(new URL('/editor.html', self.location.origin).href);
+      return core.match(new URL(BASE + '/editor.html', self.location.origin).href);
     }
     return undefined;
   };

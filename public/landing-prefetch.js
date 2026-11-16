@@ -31,23 +31,32 @@
 (function () {
   var APP = { docx: 'documenteditor', xlsx: 'spreadsheeteditor', pptx: 'presentationeditor' };
   var SDK = { docx: 'word', xlsx: 'cell', pptx: 'slide' };
-  var LOADER = '/web-apps/apps/api/documents/api.js';
+  // Familienbüro Pro: die App darf in einem Unterordner liegen; alle Pfade unten
+  // bekommen den Ordner dieses Skripts vorangestellt.
+  var BASIS = (function () {
+    try {
+      return new URL('./', document.currentScript.src).pathname.replace(/\/$/, '');
+    } catch (e) {
+      return '';
+    }
+  })();
+  var LOADER = BASIS + '/web-apps/apps/api/documents/api.js';
 
   // Shared by every open, in the order the editor asks for them, so a warm-up
   // cut short by a click has still fetched the things needed first.
   var CORE = [
     LOADER,
-    '/sdkjs/common/libfont/engine/fonts.js',
-    '/sdkjs/common/libfont/engine/fonts.wasm',
+    BASIS + '/sdkjs/common/libfont/engine/fonts.js',
+    BASIS + '/sdkjs/common/libfont/engine/fonts.wasm',
     // The catalog entries all three editors load. Measured across docx/xlsx/pptx;
     // test/e2e/landing-prefetch.spec.ts fails if that stops being true, which is
     // how a vendor bump that renumbers the catalog gets noticed.
-    '/fonts/059',
-    '/fonts/060',
-    '/fonts/061',
-    '/fonts/062',
+    BASIS + '/fonts/059',
+    BASIS + '/fonts/060',
+    BASIS + '/fonts/061',
+    BASIS + '/fonts/062',
     // Only needed to open an existing file, which is what the hero CTA does.
-    '/sdkjs/common/wasm/x2t/x2t.wasm.br',
+    BASIS + '/sdkjs/common/wasm/x2t/x2t.wasm.br',
   ];
 
   var requested = {};
@@ -137,7 +146,7 @@
     function pending(worker) {
       // The native editor also installs an unrelated empty stub in this scope;
       // the landing updater deliberately does not promote that registration.
-      if (worker && worker.scriptURL && new URL(worker.scriptURL).pathname !== '/sw.js') return false;
+      if (worker && worker.scriptURL && new URL(worker.scriptURL).pathname !== BASIS + '/sw.js') return false;
       return worker && worker.state !== 'redundant' && worker.state !== 'activated';
     }
     var blocked = !!(pending(waiting) || pending(installing));
@@ -298,10 +307,10 @@
   function formatUrls(kind) {
     if (!kind || !APP[kind]) return [];
     return [
-      '/web-apps/apps/' + APP[kind] + '/main/app.js',
-      '/web-apps/apps/' + APP[kind] + '/main/code.js',
-      '/sdkjs/' + SDK[kind] + '/sdk-all-min.js',
-      '/sdkjs/' + SDK[kind] + '/sdk-all.js',
+      BASIS + '/web-apps/apps/' + APP[kind] + '/main/app.js',
+      BASIS + '/web-apps/apps/' + APP[kind] + '/main/code.js',
+      BASIS + '/sdkjs/' + SDK[kind] + '/sdk-all-min.js',
+      BASIS + '/sdkjs/' + SDK[kind] + '/sdk-all.js',
     ];
   }
 

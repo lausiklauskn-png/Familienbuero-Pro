@@ -45,7 +45,7 @@ export const onCreateNew = async (ext: string, options?: { docId?: string }): Pr
   // Kerns (Letter, ostasiatische Schrift, Englisch).
   if (ext === '.docx') {
     try {
-      const antwort = await fetch(new URL('/familienbuero/leer.docx', location.href));
+      const antwort = await fetch(new URL('./familienbuero/leer.docx', location.href));
       if (antwort.ok) {
         const vorlage = new File([await antwort.blob()], 'Dokument.docx', {
           type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',

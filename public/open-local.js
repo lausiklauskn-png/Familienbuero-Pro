@@ -153,7 +153,7 @@
     input.style.display = 'none';
     document.body.appendChild(input);
 
-    var targetHref = '/editor?open=local';
+    var targetHref = './editor?open=local';
 
     buttons.forEach(function (btn) {
       btn.addEventListener('click', function () {

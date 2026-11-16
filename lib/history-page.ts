@@ -117,7 +117,7 @@ function pickAndOpenFile(): void {
     input.remove();
     if (!file) return;
     void stashPendingFile(file).then((stashed) => {
-      window.location.href = stashed ? '/editor?open=local' : '/editor';
+      window.location.href = stashed ? './editor?open=local' : './editor';
     });
   });
   document.body.appendChild(input);

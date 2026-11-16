@@ -35,7 +35,16 @@
   'use strict';
 
   /** Absolute, not './sw.js': from /zh-CN/ a relative URL would scope the worker to /zh-CN/. */
-  var SW_URL = global.crossOriginIsolated === true ? '/sw.js?isolation=1' : '/sw.js';
+  // Familienbüro Pro: nicht '/sw.js' – die App darf in einem Unterordner liegen.
+  // Dieses Skript liegt immer neben sw.js, also wird die Adresse von ihm abgeleitet.
+  var SW_BASIS = (function () {
+    try {
+      return new URL('./', document.currentScript.src).pathname;
+    } catch (e) {
+      return '/';
+    }
+  })();
+  var SW_URL = SW_BASIS + (global.crossOriginIsolated === true ? 'sw.js?isolation=1' : 'sw.js');
   var CLIENT_COUNT_TIMEOUT_MS = 1000;
 
   function createSwUpdater(nav, options) {
