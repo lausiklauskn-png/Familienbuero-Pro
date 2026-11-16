@@ -100,7 +100,8 @@ test.describe('neutral editor presentation and legal notices', () => {
 
 test.describe('trademark notice (AGPL-3.0 Section 7(e))', () => {
   const PAGES = [
-    ['/', 'ONLYOFFICE is a trademark of Ascensio System SIA'],
+    // The Familienbüro start page states it in German, inside its licence note.
+    ['/', 'ONLYOFFICE ist eine Marke von Ascensio System SIA'],
     ['/zh-CN/', 'ONLYOFFICE 是 Ascensio System SIA 的商标'],
     ['/help', 'ONLYOFFICE is a trademark of Ascensio System SIA'],
   ] as const;
