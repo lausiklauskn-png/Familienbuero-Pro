@@ -111,7 +111,7 @@ describe('local open outcome ownership', () => {
     finish(true);
     expect((await result).isError).toBe(true);
     expect(native.readonly).not.toHaveBeenCalled();
-    expect(native.start).toHaveBeenCalledWith(expect.objectContaining({ title: 'Untitled.xlsx' }));
+    expect(native.start).toHaveBeenCalledWith(expect.objectContaining({ title: 'Tabelle.xlsx' }));
   });
 
   it('consumes an already-reported file picker failure at the event boundary', async () => {

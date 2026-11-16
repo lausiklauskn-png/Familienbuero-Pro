@@ -1,6 +1,23 @@
+/**
+ * Familienbüro Pro: die Wurzel der App als Pfad mit Schrägstrich am Ende. An
+ * der Wurzel einer Adresse ist das '/', unter GitHub Pages '/Familienbuero-Pro/'.
+ * Abgeleitet vom Ort dieses Programmteils (<Wurzel>/assets/…), nicht von der
+ * Seite: die kann in einem Unterordner wie /zh-CN/ liegen.
+ */
+export function appRoot(href = location.href): string {
+  try {
+    const self = new URL(import.meta.url);
+    const cut = self.pathname.lastIndexOf('/assets/');
+    if (cut >= 0 && self.origin === new URL(href).origin) return self.pathname.slice(0, cut + 1);
+  } catch {
+    /* ohne brauchbare Adresse gilt die Wurzel */
+  }
+  return '/';
+}
+
 /** The page chooses the response policy; a Service Worker itself is not isolated. */
 export function appWorkerScriptURL(href = location.href, isolated = globalThis.crossOriginIsolated === true): string {
-  const url = new URL('./sw.js', href);
+  const url = new URL(appRoot(href) + 'sw.js', href);
   if (isolated) url.searchParams.set('isolation', '1');
   return url.href;
 }
@@ -25,7 +42,7 @@ export async function resolveAppWorkerScriptURL(
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 1500);
   try {
-    const target = new URL('./editor', href);
+    const target = new URL(appRoot(href) + 'editor', href);
     const response = await request(target.href, { method: 'HEAD', cache: 'no-store', signal: controller.signal });
     const sameOrigin = !response.url || new URL(response.url).origin === target.origin;
     return response.ok &&

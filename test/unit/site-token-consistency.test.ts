@@ -51,9 +51,11 @@ it('rejects unknown foundation and removed local roles even with fallbacks', asy
 });
 it('includes the application role layer before page styles on every entry and generated page', async () => {
   const { generate } = await import('../../bin/build-pages.mjs');
-  const pages = ['index.html', 'editor.html', 'history.html', 'public/404.html', 'public/embed-demo.html'].map(
-    (file) => ({ rel: file, html: read(file) }),
-  );
+  // index.html is the Familienbüro start page (own design), see bin/design-tokens.mjs.
+  const pages = ['editor.html', 'history.html', 'public/404.html', 'public/embed-demo.html'].map((file) => ({
+    rel: file,
+    html: read(file),
+  }));
   for (const { rel, html } of [...pages, ...generate({ outDir: null })]) {
     expect(html, rel).toContain('href="/app-tokens.css"');
     expect(html.indexOf('/app-tokens.css'), rel).toBeGreaterThan(html.indexOf('/ran-tokens.css'));

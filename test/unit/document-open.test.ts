@@ -263,7 +263,7 @@ describe('mounted document metadata', () => {
     await vi.advanceTimersByTimeAsync(0);
     expect(getDocmentObj()).toBe(original.metadata);
     await finishMount(opening);
-    const expectedName = kind === 'local' ? 'Local.txt' : kind === 'url' ? 'Remote.txt' : 'Untitled.docx';
+    const expectedName = kind === 'local' ? 'Local.txt' : kind === 'url' ? 'Remote.txt' : 'Dokument.docx';
     expect(getDocmentObj().fileName).toBe(expectedName);
     const editor = window.editor as unknown as { config: { document: { title: string } } };
     expect(editor.config.document.title).toBe(expectedName);

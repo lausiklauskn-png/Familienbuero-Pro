@@ -42,6 +42,18 @@ function pathFor(output, dir) {
   return output.rel === 'index.html' ? resolve(ROOT, 'index.html') : resolve(dir, output.rel);
 }
 
+/**
+ * Familienbüro Pro: die Startseite der App ist unsere eigene
+ * (familienbuero/start.html), nicht die erzeugte Startseite der Vorlage.
+ * generate() rechnet unverändert; nur was als index.html auf die Platte kommt
+ * (und was check() dort erwartet), ist unsere Seite.
+ */
+const EIGENE_STARTSEITE = resolve(ROOT, 'familienbuero/start.html');
+function geschrieben(output) {
+  if (output.rel === 'index.html' && existsSync(EIGENE_STARTSEITE)) return readFileSync(EIGENE_STARTSEITE, 'utf8');
+  return output.html;
+}
+
 export function generate({ outDir = resolve(ROOT, 'public') } = {}) {
   const outputs = [];
   // The homepages first: they are the one page whose source is data rather
@@ -82,17 +94,11 @@ export function generate({ outDir = resolve(ROOT, 'public') } = {}) {
       });
     }
   }
-  // Familienbüro Pro: die Startseite ist unsere eigene (familienbuero/start.html),
-  // nicht die erzeugte Seite der Vorlage.
-  const eigeneStartseite = resolve(ROOT, 'familienbuero/start.html');
-  if (existsSync(eigeneStartseite)) {
-    for (const o of outputs) if (o.rel === 'index.html') o.html = readFileSync(eigeneStartseite, 'utf8');
-  }
   if (outDir) {
     for (const o of outputs) {
       const target = pathFor(o, outDir);
       mkdirSync(dirname(target), { recursive: true });
-      writeFileSync(target, o.html);
+      writeFileSync(target, geschrieben(o));
     }
   }
   return outputs;
@@ -113,7 +119,7 @@ export function check({ publicDir = resolve(ROOT, 'public') } = {}) {
   for (const o of generate({ outDir: null })) {
     if (!COMMITTED.has(o.rel)) continue;
     const target = pathFor(o, publicDir);
-    if (!existsSync(target) || readFileSync(target, 'utf8') !== o.html) stale.push(o.rel);
+    if (!existsSync(target) || readFileSync(target, 'utf8') !== geschrieben(o)) stale.push(o.rel);
   }
   return stale;
 }

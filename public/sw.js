@@ -29,10 +29,15 @@ const isOwnedAppCache = (name) =>
 // /Familienbuero-Pro/). BASE ist dieser Unterordner ohne Schrägstrich am Ende,
 // an der Wurzel leer. lokal() nimmt ihn von einem Pfad wieder ab, damit alle
 // Vergleiche unten weiter mit '/editor', '/assets/…' usw. arbeiten.
-const BASE = new URL('./', self.location.href).pathname.replace(/\/$/, '');
+const BASE = (() => {
+  try {
+    return new URL('./', self.location.href).pathname.replace(/\/$/, '');
+  } catch {
+    return '';
+  }
+})();
 const lokal = (pfad) => (BASE && pfad.startsWith(BASE + '/') ? pfad.slice(BASE.length) : pfad);
 const ASSETS_TO_CACHE = [
-  './familienbuero/leer.docx',
   './',
   './index.html',
   './editor',

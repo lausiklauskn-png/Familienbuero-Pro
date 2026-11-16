@@ -11,6 +11,23 @@ import { startDocumentSession, newDocumentId } from './history/session';
 import { clearDocumentSession } from './history/autosave';
 import { rememberActiveSource, clearActiveSource } from './active-document-source';
 
+import { LEER_DOCX_BASE64 } from './leer-docx';
+
+/** Die eingebaute deutsche Vorlage als Datei. */
+const leeresTextdokument = (fileName: string): File | undefined => {
+  try {
+    const roh = atob(LEER_DOCX_BASE64);
+    const bytes = new Uint8Array(roh.length);
+    for (let i = 0; i < roh.length; i++) bytes[i] = roh.charCodeAt(i);
+    return new File([bytes], fileName, {
+      type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    });
+  } catch (fehler) {
+    console.warn('Vorlage nicht lesbar, leeres Dokument des Kerns wird benutzt:', fehler);
+    return undefined;
+  }
+};
+
 // Import UI functions with type-only to avoid circular dependency
 // These will be passed as callbacks or called after document operations
 let hideControlPanelFn: (() => void) | null = null;
@@ -40,22 +57,6 @@ const fileInput = View('input')
 document.body.appendChild(fileInput);
 
 export const onCreateNew = async (ext: string, options?: { docId?: string }): Promise<void> => {
-  // Familienbüro Pro: ein neues Textdokument startet aus unserer deutschen
-  // Vorlage (A4, Calibri 11, Sprache Deutsch) statt aus dem Leerdokument des
-  // Kerns (Letter, ostasiatische Schrift, Englisch).
-  if (ext === '.docx') {
-    try {
-      const antwort = await fetch(new URL('./familienbuero/leer.docx', location.href));
-      if (antwort.ok) {
-        const vorlage = new File([await antwort.blob()], 'Dokument.docx', {
-          type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        });
-        return await openLocalFile(vorlage, { historyId: options?.docId });
-      }
-    } catch (fehler) {
-      console.warn('Vorlage nicht ladbar, leeres Dokument des Kerns wird benutzt:', fehler);
-    }
-  }
   const opening = beginDocumentOpen();
   const operation = opening.id;
   // Callers own the loading indicator (the control panel shows it around this
@@ -67,7 +68,16 @@ export const onCreateNew = async (ext: string, options?: { docId?: string }): Pr
     const fileName = (ext === '.xlsx' ? 'Tabelle' : ext === '.pptx' ? 'Folien' : 'Dokument') + ext;
     await loadEditorApi();
     opening.assertCurrent();
-    await handleDocumentOperation({ fileName, isNew: true, signal: opening.signal, isCurrent: opening.isCurrent });
+    // Familienbüro Pro: ein neues Textdokument startet aus unserer deutschen
+    // Vorlage (A4, Calibri 11, Sprache Deutsch) statt aus dem Leerdokument des
+    // Kerns (Letter, ostasiatische Schrift, Englisch). Die Vorlage steckt im
+    // Programm selbst, es wird nichts nachgeladen.
+    const vorlage = ext === '.docx' ? leeresTextdokument(fileName) : undefined;
+    await handleDocumentOperation(
+      vorlage
+        ? { file: vorlage, fileName, isNew: false, signal: opening.signal, isCurrent: opening.isCurrent }
+        : { fileName, isNew: true, signal: opening.signal, isCurrent: opening.isCurrent },
+    );
     if (!commitDocumentOpen(operation)) return;
     setDocmentObj({ fileName, file: undefined });
     clearDocumentSession();

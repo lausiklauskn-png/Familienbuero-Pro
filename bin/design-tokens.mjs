@@ -32,7 +32,8 @@ export function designTokenSources(root) {
   return [
     ...sources,
     'packages/chat-ui/src/styles.ts',
-    'index.html',
+    // Familienbüro Pro: index.html ist unsere eigene Startseite im Familienakte-Design
+    // (familienbuero/start.html) und folgt nicht den Rollen-Tokens der Vorlage.
     'editor.html',
     'history.html',
     'public/404.html',
