@@ -76,7 +76,8 @@ for (const scheme of ['light', 'dark'] as const) {
     await page.emulateMedia({ colorScheme: scheme });
     for (const width of [1280, 390, 320]) {
       await page.setViewportSize({ width, height: 800 });
-      for (const route of ['/', '/help', '/history?locale=en', '/404.html', '/embed-demo']) {
+      // Familienbüro Pro: '/' is our own start page (familienbuero/start.html), not a page of the generated site.
+      for (const route of ['/help', '/history?locale=en', '/404.html', '/embed-demo']) {
         await page.goto(route);
         const brand = page.locator('header.bar .brand');
         await expect(brand).toBeVisible();
@@ -119,7 +120,8 @@ test('all seven localized generated headers keep their localized accessible home
   await page.setViewportSize({ width: 320, height: 800 });
   for (const locale of ['', 'zh-CN', 'ja', 'ko', 'de', 'es', 'pt']) {
     const prefix = locale ? `/${locale}` : '';
-    for (const path of ['/', '/help']) {
+    // Familienbüro Pro: '/' is our own start page (familienbuero/start.html), not a page of the generated site.
+    for (const path of prefix ? ['/', '/help'] : ['/help']) {
       await page.goto(`${prefix}${path}`);
       const brand = page.locator('header.bar .brand');
       await expect(brand).toBeVisible();
@@ -189,7 +191,8 @@ test.describe('coarse pointers', () => {
   test.use({ hasTouch: true, viewport: { width: 320, height: 800 } });
   test('page and inline actions share 44px targets without clipping', async ({ page }) => {
     await observeComponents(page);
-    for (const route of ['/', '/offline-document-editor', '/history?locale=en', '/embed-demo']) {
+    // Familienbüro Pro: '/' is our own start page (familienbuero/start.html), not a page of the generated site.
+    for (const route of ['/offline-document-editor', '/history?locale=en', '/embed-demo']) {
       await page.goto(route);
       for (const selector of route.startsWith('/history')
         ? ['.history-header-actions r-button', '#history-clear-all']

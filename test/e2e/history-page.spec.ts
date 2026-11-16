@@ -222,8 +222,10 @@ test.describe('local history page', () => {
     // has to hold for a first-time visitor and with JavaScript off.
     await page.goto('/');
     const line = page.locator('#landing-hero .recent');
-    await expect(line).toContainText('7 days');
-    await expect(line.locator('a.recent-all')).toHaveAttribute('href', '/history?locale=en');
+    // Familienbüro Pro: the start page is German and its links are relative
+    // (the app may live in a sub-folder); the language follows the device.
+    await expect(line).toContainText('7 Tage');
+    await expect(line.locator('a.recent-all')).toHaveAttribute('href', './history?locale=en');
 
     await line.locator('a.recent-all').click();
     await page.waitForURL('**/history?locale=en');

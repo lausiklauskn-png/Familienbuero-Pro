@@ -5,7 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="./icons/document-light.svg" />
-    <link rel="icon" type="image/png" sizes="32x32" href="./icons/document-32.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="./icons/document-light-32.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="./icons/document-180.png" />
     <link rel="manifest" href="./manifest.json" />
     <script>
@@ -39,7 +39,9 @@
         });
       })();
     </script>
-    <meta name="theme-color" content="#0b3154" />
+    <meta name="theme-color" content="#ffffff" />
+    <!-- Stellt Tab-Symbol und Leistenfarbe passend zu hell/dunkel ein (wie im Editor). -->
+    <script src="./theme-presentation.js"></script>
     <meta name="mobile-web-app-capable" content="yes" />
     <title>Familienbüro Pro – Schreiben, Tabellen, Folien</title>
     <meta
@@ -79,6 +81,38 @@
         display: flex;
         align-items: center;
         gap: 12px;
+      }
+      .kopf-name {
+        flex: 1 1 auto;
+        min-width: 0;
+      }
+      .fassung {
+        display: inline-block;
+        margin-right: 8px;
+        padding: 1px 6px;
+        border: 1px solid rgba(255, 255, 255, 0.45);
+        border-radius: 6px;
+        font-size: 11px;
+        opacity: 1;
+        vertical-align: 2px;
+      }
+      .kopf-knopf {
+        flex: 0 0 auto;
+        min-height: 38px;
+        padding: 0 14px;
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        border-radius: 9px;
+        background: #fff;
+        color: var(--navy);
+        font: inherit;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .kopf-knopf.fahne {
+        background: #ffd24a;
+        border-color: #ffd24a;
+        color: #3a2a00;
       }
       .kopf img {
         width: 44px;
@@ -234,6 +268,29 @@
       footer a {
         text-decoration: underline;
       }
+      @media (max-width: 560px) {
+        .kopf {
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+        .kopf img {
+          width: 36px;
+          height: 36px;
+        }
+        .kopf b {
+          font-size: 16px;
+          white-space: nowrap;
+        }
+        .kopf-name br,
+        .kopf-name span:not(.fassung) {
+          display: none;
+        }
+        .kopf-knopf {
+          min-height: 36px;
+          padding: 0 10px;
+          font-size: 13px;
+        }
+      }
       @media (max-width: 820px) {
         .kacheln {
           grid-template-columns: repeat(2, 1fr);
@@ -250,7 +307,28 @@
   <body>
     <div class="kopf">
       <img src="./icons/document-192.png" alt="" />
-      <div><b>Familienbüro Pro</b><br /><span>Schreiben · Tabellen · Folien</span></div>
+      <div class="kopf-name">
+        <span class="fassung" id="fassung" title="Fassung">{{FASSUNG}}</span><b>Familienbüro Pro</b><br />
+        <span>Schreiben · Tabellen · Folien</span>
+      </div>
+      <button
+        type="button"
+        class="kopf-knopf fahne"
+        id="update-fahne"
+        hidden
+        title="Eine neue Fassung ist da. Antippen lädt sie."
+      >
+        ⚑ Update
+      </button>
+      <button
+        type="button"
+        class="kopf-knopf"
+        id="installieren"
+        hidden
+        title="Familienbüro Pro als App auf diesem Gerät installieren"
+      >
+        ⤓ Installieren
+      </button>
     </div>
     <main>
       <section id="landing-hero">
@@ -279,7 +357,7 @@
             ><i>F</i><b>Folien</b><small>Neue Präsentation</small></a
           >
         </div>
-        <div class="zuletzt">
+        <div class="zuletzt recent">
           <span
             data-recent-slot
             data-sprache
@@ -321,5 +399,57 @@
       </details>
     </footer>
     <script src="./sw-register.js" defer></script>
+    <script>
+      // Installieren: Chrome meldet mit "beforeinstallprompt", dass die App
+      // installierbar ist. Dann erscheint der Knopf; nach dem Installieren
+      // (oder wenn die App schon als App läuft) verschwindet er.
+      (function () {
+        var knopf = document.getElementById('installieren');
+        var angebot = null;
+        var alsApp = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+        window.addEventListener('beforeinstallprompt', function (ereignis) {
+          ereignis.preventDefault();
+          angebot = ereignis;
+          if (!alsApp) knopf.hidden = false;
+        });
+        knopf.addEventListener('click', function () {
+          if (!angebot) return;
+          angebot.prompt();
+          angebot.userChoice.then(function (wahl) {
+            if (wahl && wahl.outcome === 'accepted') knopf.hidden = true;
+            angebot = null;
+          });
+        });
+        window.addEventListener('appinstalled', function () {
+          knopf.hidden = true;
+          angebot = null;
+        });
+
+        // Update-Fähnchen: übernimmt ein neuer Offline-Worker die Seite, liegt
+        // eine neue Fassung bereit. Antippen lädt sie.
+        var fahne = document.getElementById('update-fahne');
+        fahne.addEventListener('click', function () {
+          location.reload();
+        });
+        if ('serviceWorker' in navigator) {
+          var hatteWorker = Boolean(navigator.serviceWorker.controller);
+          navigator.serviceWorker.addEventListener('controllerchange', function () {
+            if (hatteWorker) fahne.hidden = false;
+            hatteWorker = true;
+          });
+          navigator.serviceWorker.getRegistration().then(function (anmeldung) {
+            if (!anmeldung) return;
+            if (anmeldung.waiting && navigator.serviceWorker.controller) fahne.hidden = false;
+            anmeldung.addEventListener('updatefound', function () {
+              var neu = anmeldung.installing;
+              if (!neu) return;
+              neu.addEventListener('statechange', function () {
+                if (neu.state === 'installed' && navigator.serviceWorker.controller) fahne.hidden = false;
+              });
+            });
+          });
+        }
+      })();
+    </script>
   </body>
 </html>

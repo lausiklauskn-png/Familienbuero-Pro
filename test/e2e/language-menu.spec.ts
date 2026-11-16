@@ -31,7 +31,8 @@ test.describe('language menu', () => {
     const label = locale || 'en';
 
     test(`${label}: names every language in its own words, whole`, async ({ page }) => {
-      await page.goto(`/${locale}`);
+      // Familienbüro Pro: '/' is our own start page; the English menu lives on /help.
+      await page.goto(locale ? `/${locale}` : '/help');
       await openMenu(page);
 
       const options = await page.evaluate(() =>
@@ -81,7 +82,7 @@ test.describe('language menu', () => {
    * "Language" button that never reported being open.
    */
   test('is a single control: one tab stop, with the name and the state together', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/help');
     const aria = await page.evaluate(() => {
       const menu = document.querySelector('r-popover.lang-menu') as HTMLElement;
       const inHeader = [...document.querySelectorAll('header.bar *')].filter((el) => (el as HTMLElement).tabIndex >= 0);
@@ -105,7 +106,7 @@ test.describe('language menu', () => {
 
   /** The keyboard path: reach it with Tab, open it with Enter. */
   test('opens from the keyboard', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/help');
     await page.locator('r-popover.lang-menu').first().focus();
     await page.keyboard.press('Enter');
     await expect(page.locator('a.lang-option').first()).toBeVisible();
@@ -216,7 +217,7 @@ test.describe('language menu', () => {
    * does not open.
    */
   test('closes on Escape and on a click outside', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/help');
     const trigger = await openMenu(page);
     await page.keyboard.press('Escape');
     await expect(page.locator('a.lang-option').first()).toBeHidden();
@@ -238,7 +239,9 @@ test.describe('a chosen language follows the reader', () => {
    * homepage -- they were back in English.
    */
   test('picking a language on a static page reaches the app pages too', async ({ page }) => {
-    await page.goto('/');
+    // Familienbüro Pro: start from a generated homepage ('/' is our own start
+    // page), so that choosing 日本語 lands on the Japanese homepage.
+    await page.goto('/zh-CN/');
     // Choose 日本語 through the menu, the way a reader does.
     await page.locator('.lang-trigger').first().click();
     await page.locator('a.lang-option[hreflang="ja"]').first().click();
@@ -265,7 +268,7 @@ test.describe('page chrome', () => {
    * invisible against a white page, obvious the moment the theme is dark.
    */
   test('no page floats inside the browser default body margin', async ({ page }) => {
-    for (const route of ['/', '/ja/', '/pt/open/docx', '/history']) {
+    for (const route of ['/ja/', '/pt/open/docx', '/history']) {
       await page.goto(route);
       const margin = await page.evaluate(() => {
         const style = getComputedStyle(document.body);
@@ -300,7 +303,7 @@ test.describe('page chrome', () => {
   ]) {
     test(`${viewport.label}: every item in the top bar is one height, on one baseline`, async ({ page }) => {
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
-      for (const route of ['/', '/zh-CN/', '/help', '/history', '/embed-demo.html']) {
+      for (const route of ['/zh-CN/', '/help', '/history', '/embed-demo.html']) {
         await page.goto(route);
         await page.evaluate(() => document.fonts.ready);
         // On a phone the homepage drops its two text links, so the first child

@@ -1,7 +1,12 @@
 import { test, expect } from '@playwright/test';
 import { generate } from '../../bin/build-pages.mjs';
 
-const routes = generate({ outDir: null }).map((o) => o.route);
+// Familienbüro Pro: the root page is our own start page (familienbuero/start.html).
+// It is a private app entry (noindex) and carries no sharing card, so it is not
+// part of the public pages checked here.
+const routes = generate({ outDir: null })
+  .map((o) => o.route)
+  .filter((route) => route !== '/');
 
 test('every public page serves sharing metadata without JavaScript', async ({ request }) => {
   for (let i = 0; i < routes.length; i += 10) {

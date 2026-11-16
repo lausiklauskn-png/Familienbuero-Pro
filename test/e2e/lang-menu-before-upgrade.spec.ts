@@ -8,7 +8,8 @@ import { expect, test } from './lib/l0';
 // define it and check the menu stays a single trigger.
 test.use({ serviceWorkers: 'block' });
 
-for (const path of ['/', '/zh-CN/', '/help', '/history']) {
+// Familienbüro Pro: '/' is our own start page (familienbuero/start.html), not a page of the generated site.
+for (const path of ['/zh-CN/', '/help', '/history']) {
   test(`${path}: the language menu does not expand before r-popover is defined`, async ({ page }) => {
     await page.route('**/ranui-iife/*.iife.js', (route) => route.abort());
     await page.route('**/assets/*.js', (route) => route.abort());

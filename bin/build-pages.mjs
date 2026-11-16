@@ -50,7 +50,11 @@ function pathFor(output, dir) {
  */
 const EIGENE_STARTSEITE = resolve(ROOT, 'familienbuero/start.html');
 function geschrieben(output) {
-  if (output.rel === 'index.html' && existsSync(EIGENE_STARTSEITE)) return readFileSync(EIGENE_STARTSEITE, 'utf8');
+  if (output.rel === 'index.html' && existsSync(EIGENE_STARTSEITE)) {
+    // Die Fassung steht in familienbuero/fassung.json und wird hier eingesetzt.
+    const { fassung } = JSON.parse(readFileSync(resolve(ROOT, 'familienbuero/fassung.json'), 'utf8'));
+    return readFileSync(EIGENE_STARTSEITE, 'utf8').replaceAll('{{FASSUNG}}', fassung);
+  }
   return output.html;
 }
 
