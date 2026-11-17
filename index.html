@@ -31,7 +31,11 @@
         try {
           localStorage.setItem('document-lang', sprache);
         } catch (e) {}
+        // In den Hüllen (Android-APK, Windows-Programm) trägt der Kopf das Pro-Zeichen.
+        var inHuelle = inAndroidHuelle || Boolean(window.__TAURI_INTERNALS__);
         document.addEventListener('DOMContentLoaded', function () {
+          var zeichen = document.querySelector('.kopf img');
+          if (inHuelle && zeichen) zeichen.src = './icons/pro/familienbuero-pro-192.png';
           document.querySelectorAll('[data-sprache]').forEach(function (el) {
             ['href', 'data-open-local'].forEach(function (name) {
               var wert = el.getAttribute(name);
@@ -368,6 +372,7 @@
       }
     </style>
     <script src="./open-local.js" defer></script>
+    <script src="./oeffnen-mit.js" defer></script>
     <script src="./landing-prefetch.js" defer></script>
     <script src="./history-recent.js" defer></script>
   </head>
@@ -376,7 +381,7 @@
       <img src="./icons/document-192.png" alt="" />
       <div class="kopf-name">
         <button type="button" class="fassung" id="fassung" title="Fassung – antippen prüft, ob es eine neuere gibt">
-          0.1.0
+          0.1.1
         </button>
         <b>Familienbüro Pro</b>
       </div>

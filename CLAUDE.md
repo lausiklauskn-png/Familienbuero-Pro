@@ -16,7 +16,7 @@ speichern – ohne Konto, ohne Server, alles auf dem Gerät. Schwester-App der F
   Herkunftshinweis bleibt in der App (Startseite „Lizenzhinweis“, im Editor „Datei → Über“).
   Nicht als geschlossenes Produkt ausgeben. Keine Microsoft-Namen oder -Logos als Produktname.
 
-## Stand (17.11.2026, Fassung 0.1.0)
+## Stand (17.11.2026, Fassung 0.1.1)
 
 - **PWA online:** https://lausiklauskn-png.github.io/Familienbuero-Pro/ (GitHub Pages, Quelle „GitHub Actions“,
   Ablauf `.github/workflows/pages.yml` bei jedem Stand auf `main`). Von Klaus am Tablet installiert und gestartet.
@@ -63,6 +63,15 @@ speichern – ohne Konto, ohne Server, alles auf dem Gerät. Schwester-App der F
   (von Hand, `veroeffentlichen=ja` → Vorab-Release `android-v<Fassung>-test`). Speichern nach
   Dokumente/Familienbuero (`saveInAndroidShell` in `lib/save-target.ts`). **Wegwerf-Schlüssel je Lauf.**
 - In beiden Hüllen gibt es keinen Offline-Worker (`isNativeShell`).
+- **Android, Schriften (0.1.1):** die APK 0.1.0 öffnete kein Dokument („cellGetMetrics“/„m_pFaceInfo“ of null,
+  leeres Schriftfeld). Ursache: Capacitor liefert für Adressen ohne Dateiendung die Startseite aus – die
+  Schriftdateien heißen `fonts/000` … ohne Endung. Darum `"html5mode": false` in `handy/capacitor.config.json`;
+  **nicht entfernen** (Probe `test/unit/huellen.test.ts`). Seiten in der APK immer mit `.html` ansteuern.
+- **„Öffnen mit“ (0.1.1):** `public/oeffnen-mit.js` (Start- und Editorseite) nimmt in den Hüllen die im
+  Dateimanager gewählte Datei entgegen und legt sie in die Übergabe von „Datei öffnen“. Android: Anmeldung
+  im Manifest über `handy/manifest-anpassen.mjs` (läuft im Ablauf nach `cap add android`), Adresse über das
+  Plugin `@capacitor/app`, Inhalt über `@capacitor/filesystem`. Windows: `fileAssociations` in
+  `tauri.conf.json` (docx, xlsx, pptx), Pfad aus der Befehlszeile (`startdatei_*` in `main.rs`).
 
 ## Offen
 
