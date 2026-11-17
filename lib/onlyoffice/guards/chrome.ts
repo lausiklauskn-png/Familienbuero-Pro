@@ -23,6 +23,11 @@ export function injectLocalChromeCss(doc: Document): void {
       '.btn-current-user, #tlb-box-users { display: none !important; }',
       '#header-logo, .brand-logo, .asc-about-office, #id-about-company-logo { display: none !important; }',
       '#id-about-licensor-logo .asc-about-version:not(#id-about-licensor-version-name) { display: none !important; }',
+      // Familienbüro Pro: die Kopfleiste der hellen Standardansicht in den Farben der
+      // Familienakte -- Schreiben dunkelblau, Tabellen petrol, Folien und PDF rot.
+      // Nur diese eine Ansicht: die übrigen (weiß, dunkel) haben eigene, darauf
+      // abgestimmte Schriftfarben.
+      '.theme-classic-light { --toolbar-header-document: #0b3154 !important; --toolbar-header-spreadsheet: #087f7a !important; --toolbar-header-presentation: #8f252b !important; --toolbar-header-pdf: #8f252b !important; }',
       `@media (max-width: ${COMPACT_VIEWPORT_MAX_WIDTH}px), (pointer: coarse) and (max-height: ${COMPACT_VIEWPORT_MAX_WIDTH}px) {`,
       '  [data-layout-name="rightMenu"] { display: none !important; }',
       '}',
