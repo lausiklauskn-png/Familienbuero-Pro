@@ -132,7 +132,7 @@ html[data-fb-farbe='koralle'] .kopf {
 #fb-farbe-knopf {
   width: 22px;
   height: 22px;
-  margin-right: 8px;
+  margin: 0 6px;
   padding: 0;
   border-radius: 50%;
   cursor: pointer;

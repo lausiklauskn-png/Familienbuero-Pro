@@ -196,12 +196,16 @@
       wahl.hidden = false;
       var r = knopf.getBoundingClientRect();
       wahl.style.top = Math.round(r.bottom + 8) + 'px';
-      wahl.style.left = Math.round(Math.max(8, Math.min(r.left, W.innerWidth - wahl.offsetWidth - 8))) + 'px';
+      wahl.style.left =
+        Math.round(Math.max(8, Math.min(r.right - wahl.offsetWidth, W.innerWidth - wahl.offsetWidth - 8))) + 'px';
     });
     document.addEventListener('click', function (ereignis) {
       if (!wahl.hidden && !wahl.contains(ereignis.target)) wahl.hidden = true;
     });
-    a.insertAdjacentElement('afterend', knopf);
+    // Rechts im Kopf, direkt vor dem Zahnrad -- an derselben Seite wie im Editor (Klaus 17.11.2026).
+    var zahnrad = document.getElementById('btnEinst');
+    if (zahnrad && zahnrad.parentElement) zahnrad.parentElement.insertBefore(knopf, zahnrad);
+    else kopf.appendChild(knopf);
     document.body.appendChild(wahl);
   });
 })();
