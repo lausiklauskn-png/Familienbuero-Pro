@@ -39,6 +39,8 @@ speichern – ohne Konto, ohne Server, alles auf dem Gerät. Schwester-App der F
   Koralle · Kräftig (die dunklen Familienakte-Farben aus `lib/onlyoffice/guards/chrome.ts`). Je Gerät gemerkt
   (`fb-farbe`). Die übrigen Ansichten des Editors (Ansicht → Thema) bleiben unverändert, dort kein Knopf.
   `lib/onlyoffice/farbpalette.ts`, Probe `test/unit/farbpalette.test.ts`.
+- **Geschenk nur mit der Web-App (Klaus 17.11., für Jens):** `…/geschenk/web/` (`familienbuero/geschenk/web/index.html`):
+  Box, Buch, der Anhänger öffnet die Web-App direkt – ohne APK und Windows, solange die am Gerät ungeprüft sind.
 - **Geschenkbox:** nach Box und Buch eine dritte Seite mit Browser, Android, Windows und den Voraussetzungen
   der Offline-KI; Bilder als WebP (Datei 0,7 MB, damit die Vorschau im Chat sie lädt).
 - **Workflow PDF als eigener Teil (Klaus 17.11.: „Als eigener Teil daneben“):** Kachel „PDF“ auf der Startseite
