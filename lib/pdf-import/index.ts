@@ -1,6 +1,7 @@
 import { getLanguage, withLocale } from '@ranuts/shared/i18n';
 import { isNativeShell } from '../offline-worker-control';
 import { stashPendingFile } from '../pending-open';
+import { pdfAnWorkflowPdf } from '../pdf-weiter';
 import type { ImportArt } from './docx';
 
 /**
@@ -41,6 +42,7 @@ function dateiWaehlen(annehmen: string): Promise<File | null> {
 export async function dateiOeffnen(): Promise<void> {
   const datei = await dateiWaehlen('.docx,.xlsx,.pptx,.doc,.xls,.ppt,.csv,.pdf');
   if (!datei) return;
+  if (await pdfAnWorkflowPdf(datei)) return;
   if (await stashPendingFile(datei)) zumEditor();
 }
 
