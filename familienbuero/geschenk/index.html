@@ -112,6 +112,25 @@
       .dossier-top { padding:14px 18px; }
     }
     @media(prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none !important; transition:none !important; scroll-behavior:auto !important; } }
+    /* Vollbild: die Bilder so groß wie möglich, im Hoch- und im Querformat */
+    .shell { max-width:none; padding:12px 16px 10px; }
+    .topbar { padding-bottom:10px; }
+    .gift-layout { min-height:calc(100svh - 64px); padding:22px 8px 40px; }
+    .gift-wrap { max-width:none; width:min(calc(100vw - 56px), calc((100svh - 150px) * 0.94)); }
+    .book-section { padding:10px 0 4px; }
+    .book-section .eyebrow { margin-bottom:8px; }
+    .book-frame { max-width:none; margin:0 auto; width:min(100%, calc((100svh - 150px) * 1.776)); }
+    .book-actions { margin-top:10px; }
+    @media(max-height:520px) {
+      .edition, .book-section .eyebrow { display:none; }
+      .brand { font-size:18px; }
+      .topbar { padding-bottom:6px; }
+      .gift-layout { min-height:calc(100svh - 50px); padding:14px 8px 30px; }
+      .gift-wrap { width:min(calc(100vw - 56px), calc((100svh - 110px) * 0.94)); }
+      .book-frame { width:min(100%, calc((100svh - 104px) * 1.776)); }
+      .book-actions { margin-top:4px; }
+      .text-button { padding:6px 3px; }
+    }
   </style>
 </head>
 <body>
