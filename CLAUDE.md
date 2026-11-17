@@ -76,6 +76,8 @@ speichern – ohne Konto, ohne Server, alles auf dem Gerät. Schwester-App der F
   (`lib/pdf-import/pptx.ts`, Schema aus der leeren Vorlage in `pptx-thema.ts`): jede Seite eine Folie in der Größe der Seite,
   Seitenbild als Folienhintergrund, Bilder als eigene Objekte, jede Zeile/Spalte als eigenes Textfeld ohne Umbruch mit Farbe,
   Fett/Kursiv und Sperrung. Für Tabellen nicht gebaut.
+- **KI-Assistent, Schlüssel (Klaus 17.11.):** unter dem Feld „API-Schlüssel“ steht „API-Schlüssel holen ›“ zur Schlüsselseite des
+  gewählten Dienstes (`KEY_PAGES` in `lib/agent-plugin/ui/settings-view.ts`; beim lokalen Dienst kein Link).
 - **Reiterleiste am Handy (Klaus 17.11.):** Datei/Startseite/… lässt sich mit dem Finger schieben, die kleinen
   Pfeile entfallen bei Berührung; bis 760 px weichen Dateiname und Beschriftung „Bearbeitung“ aus der Zeile
   (`lib/onlyoffice/guards/chrome.ts`).
