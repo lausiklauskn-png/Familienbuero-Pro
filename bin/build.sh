@@ -77,6 +77,11 @@ if [ -f "familienbuero/geschenk/index.html" ]; then
     mkdir -p "$DIST_DIR/geschenk"
     cp "familienbuero/geschenk/index.html" "$DIST_DIR/geschenk/index.html"
 fi
+# Dieselbe Box nur mit der Web-App: Box, Buch, der Anhänger öffnet die App.
+if [ -f "familienbuero/geschenk/web/index.html" ]; then
+    mkdir -p "$DIST_DIR/geschenk/web"
+    cp "familienbuero/geschenk/web/index.html" "$DIST_DIR/geschenk/web/index.html"
+fi
 
 # Familienbüro Pro: Workflow PDF als eigener Teil daneben (eigene Lizenz, im
 # Ordner LICENSE). Byte-gleicher Klon, gepflegt nur über bin/wfpdf-nachziehen.mjs;

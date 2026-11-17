@@ -61,6 +61,7 @@ jobs:
         run: |
           set -euo pipefail
           npm install
+          node capacitor-anpassen.mjs
           npx cap add android
           node manifest-anpassen.mjs android/app/src/main/AndroidManifest.xml
           npx capacitor-assets generate --android --iconBackgroundColor '#1f5fa6' --iconBackgroundColorDark '#0b3154'

@@ -1,23 +1,109 @@
-/* Familienbüro Pro: Farben im eingebetteten Klon von Workflow PDF. Letztes Stylesheet
-   (bin/wfpdf-nachziehen.mjs); der Klon selbst ist byte-gleich. Vorbild: fa-wfpdf-thema.css der Familienakte.
+/* Familienbüro Pro: Farben und Zusätze im eingebetteten Klon von Workflow PDF. Letztes Stylesheet
+   (bin/wfpdf-nachziehen.mjs); der Klon selbst ist byte-gleich.
+   Klaus 17.11.2026: Rot, in denselben Wasserfarben wie Startseite und Editor -- ein blasses Rot mit
+   Pinselverlauf im Kopf, passend zur Kachel „PDF“ -- und dieselbe Farbwahl wie im Editor
+   (Knopf im Kopf, fb-wfpdf-bruecke.js). „kraeftig“ lässt die eigenen Farben von Workflow PDF stehen.
    Ausgeblendet: Mycel-Leiste, Installieren und ⟳ (gehören zum Familienbüro, nicht zum Klon),
    „Im Netz antworten“ (braucht den Mycel-Knoten). */
-:root {
-  --rot: #087f7a;
+html[data-fb-farbe='rot'] {
+  --rot: #c9354a;
+  --rot-d: #8f1f36;
+  --rot-h: #fdecef;
+  --blau: #a8324a;
+  --blau-h: #fbeef0;
+  --ink: #3a1a22;
+  --ink2: #7a5c63;
+  --linie: #efd6da;
+  --grund: #fbf5f5;
+  --flaeche: #fff;
+}
+html[data-fb-farbe='rot'] .kopf {
+  border-bottom-color: #e8a9b3;
+  background-image:
+    radial-gradient(540px 70px at 13% 8px, rgba(226, 89, 107, 0.34), transparent 70%),
+    radial-gradient(430px 54px at 50% 58px, rgba(255, 255, 255, 0.7), transparent 70%),
+    radial-gradient(580px 80px at 87% 14px, rgba(249, 201, 173, 0.5), transparent 72%),
+    linear-gradient(96deg, #f6c6cd, #fbe0e4 48%, #fdeee8);
+}
+html[data-fb-farbe='blau'] {
+  --rot: #2f6ea8;
   --rot-d: #0b3154;
-  --rot-h: #e8f6f5;
+  --rot-h: #e9f2fa;
   --blau: #164f7d;
   --blau-h: #edf5fb;
   --ink: #15283a;
   --ink2: #627181;
-  --linie: #d8e2ea;
-  --grund: #f2f7fa;
+  --linie: #d3e2ee;
+  --grund: #f4f9fd;
   --flaeche: #fff;
-  --ok: #167249;
-  --schatten: 0 9px 30px rgba(16, 52, 83, 0.08);
 }
-.kopf {
-  border-bottom-color: #087f7a;
+html[data-fb-farbe='blau'] .kopf {
+  border-bottom-color: #a9c8e2;
+  background-image:
+    radial-gradient(540px 70px at 13% 8px, rgba(127, 180, 230, 0.4), transparent 70%),
+    radial-gradient(430px 54px at 50% 58px, rgba(255, 255, 255, 0.7), transparent 70%),
+    radial-gradient(580px 80px at 87% 14px, rgba(159, 216, 214, 0.47), transparent 72%),
+    linear-gradient(96deg, #a9cff2, #c9e2f7 48%, #dcedf5);
+}
+html[data-fb-farbe='gruen'] {
+  --rot: #087f7a;
+  --rot-d: #0f4a43;
+  --rot-h: #e8f6f1;
+  --blau: #0b5a66;
+  --blau-h: #edf7f4;
+  --ink: #12332f;
+  --ink2: #5c726d;
+  --linie: #cfe5db;
+  --grund: #f4fbf8;
+  --flaeche: #fff;
+}
+html[data-fb-farbe='gruen'] .kopf {
+  border-bottom-color: #a3d3c0;
+  background-image:
+    radial-gradient(540px 70px at 13% 8px, rgba(127, 207, 176, 0.4), transparent 70%),
+    radial-gradient(430px 54px at 50% 58px, rgba(255, 255, 255, 0.7), transparent 70%),
+    radial-gradient(580px 80px at 87% 14px, rgba(214, 231, 154, 0.47), transparent 72%),
+    linear-gradient(96deg, #aee2cc, #cdeede 48%, #e4f3d6);
+}
+html[data-fb-farbe='gelb'] {
+  --rot: #a6781c;
+  --rot-d: #5a4310;
+  --rot-h: #fbf3dc;
+  --blau: #8a6417;
+  --blau-h: #fcf6e6;
+  --ink: #3d3113;
+  --ink2: #7b6f52;
+  --linie: #ece1c2;
+  --grund: #fefbf2;
+  --flaeche: #fff;
+}
+html[data-fb-farbe='gelb'] .kopf {
+  border-bottom-color: #e2cf96;
+  background-image:
+    radial-gradient(540px 70px at 13% 8px, rgba(240, 207, 106, 0.4), transparent 70%),
+    radial-gradient(430px 54px at 50% 58px, rgba(255, 255, 255, 0.7), transparent 70%),
+    radial-gradient(580px 80px at 87% 14px, rgba(246, 199, 154, 0.47), transparent 72%),
+    linear-gradient(96deg, #f7e3a0, #fbeec4 48%, #fdf5dc);
+}
+html[data-fb-farbe='koralle'] {
+  --rot: #c2562b;
+  --rot-d: #6b2a12;
+  --rot-h: #fdefe7;
+  --blau: #a3471f;
+  --blau-h: #fdf3ed;
+  --ink: #3c2015;
+  --ink2: #7c6257;
+  --linie: #f0d9cc;
+  --grund: #fef8f4;
+  --flaeche: #fff;
+}
+html[data-fb-farbe='koralle'] .kopf {
+  border-bottom-color: #ecbfa6;
+  background-image:
+    radial-gradient(540px 70px at 13% 8px, rgba(242, 162, 124, 0.4), transparent 70%),
+    radial-gradient(430px 54px at 50% 58px, rgba(255, 255, 255, 0.7), transparent 70%),
+    radial-gradient(580px 80px at 87% 14px, rgba(244, 194, 201, 0.47), transparent 72%),
+    linear-gradient(96deg, #f9c9ad, #fbdcc8 48%, #fdebd9);
 }
 .netzleiste,
 #btnInstall,
@@ -34,12 +120,51 @@
   height: 34px;
   margin-right: 6px;
   border-radius: 10px;
-  color: #0b3154;
+  color: var(--rot-d, #8f1f36);
   font-size: 26px;
   line-height: 1;
   text-decoration: none;
   flex: 0 0 auto;
 }
 #fb-zurueck:hover {
-  background: rgba(11, 49, 84, 0.08);
+  background: rgba(255, 255, 255, 0.55);
+}
+#fb-farbe-knopf {
+  width: 22px;
+  height: 22px;
+  margin: 0 6px;
+  padding: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  flex: 0 0 auto;
+  border: 1.5px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.18);
+  background: conic-gradient(#f6c6cd 0 25%, #a9cff2 0 50%, #aee2cc 0 75%, #f7e3a0 0);
+}
+#fb-farbe-wahl {
+  position: fixed;
+  z-index: 10000;
+  display: flex;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow:
+    0 8px 28px rgba(15, 40, 70, 0.22),
+    0 0 0 1px rgba(15, 40, 70, 0.08);
+}
+#fb-farbe-wahl[hidden] {
+  display: none;
+}
+#fb-farbe-wahl button {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.16);
+}
+#fb-farbe-wahl button[aria-pressed='true'] {
+  box-shadow: 0 0 0 2px #3a1a22;
 }
