@@ -197,3 +197,7 @@ packages/agent-core/vendor/wllama-count/
 # Generated assistant guides.
 /public/ai-document-assistant.html
 /public/*/ai-document-assistant.html
+
+# Familienbüro Pro: byte-gleicher Klon von Workflow PDF (bin/wfpdf-nachziehen.mjs) -- nie umformatieren.
+familienbuero/workflow-pdf/
+familienbuero/workflow-pdf.herkunft.json

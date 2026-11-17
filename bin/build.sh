@@ -78,6 +78,16 @@ if [ -f "familienbuero/geschenk/index.html" ]; then
     cp "familienbuero/geschenk/index.html" "$DIST_DIR/geschenk/index.html"
 fi
 
+# Familienbüro Pro: Workflow PDF als eigener Teil daneben (eigene Lizenz, im
+# Ordner LICENSE). Byte-gleicher Klon, gepflegt nur über bin/wfpdf-nachziehen.mjs;
+# Brücke und Farben liegen eine Ebene darüber.
+if [ -f "familienbuero/workflow-pdf/index.html" ]; then
+    node bin/wfpdf-nachziehen.mjs --pruefen
+    rm -rf "$DIST_DIR/workflow-pdf"
+    cp -r "familienbuero/workflow-pdf" "$DIST_DIR/workflow-pdf"
+    cp "familienbuero/wfpdf/fb-wfpdf-bruecke.js" "familienbuero/wfpdf/fb-wfpdf-thema.css" "$DIST_DIR/"
+fi
+
 # Hash exact inline bootstrap bytes after Vite transforms the editor entry.
 # The meta policy travels with the cached shell on every static host.
 node bin/editor-csp.mjs "$DIST_DIR"
