@@ -3,7 +3,7 @@
   "appName": "Familienbüro Pro",
   "webDir": "../dist",
   "loggingBehavior": "none",
-  "server": { "androidScheme": "https" },
+  "server": { "androidScheme": "https", "html5mode": false },
   "android": { "allowMixedContent": false, "webContentsDebuggingEnabled": false },
   "plugins": { "CapacitorHttp": { "enabled": false } }
 }
