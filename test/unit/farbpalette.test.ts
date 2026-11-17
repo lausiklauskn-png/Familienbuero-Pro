@@ -22,6 +22,21 @@ describe('Farbwahl im Editor', () => {
   });
 });
 
+describe('Farbe je Programm', () => {
+  it('merkt die Wahl für jedes Programm getrennt', async () => {
+    const { farbeSpeicher, gemerkteFarbe } = await import('../../lib/onlyoffice/farbpalette');
+    expect(farbeSpeicher('/web-apps/apps/documenteditor/main/index.html')).toBe('fb-farbe-text');
+    expect(farbeSpeicher('/web-apps/apps/spreadsheeteditor/main/index.html')).toBe('fb-farbe-tabelle');
+    expect(farbeSpeicher('/web-apps/apps/presentationeditor/main/index.html')).toBe('fb-farbe-folien');
+    localStorage.setItem('fb-farbe-tabelle', 'gelb');
+    expect(gemerkteFarbe(window, 'spreadsheeteditor')).toBe('gelb');
+    // Die anderen Programme bleiben bei ihrer Vorgabe.
+    expect(gemerkteFarbe(window, 'documenteditor')).toBe('auto');
+    expect(gemerkteFarbe(window, 'presentationeditor')).toBe('auto');
+    localStorage.removeItem('fb-farbe-tabelle');
+  });
+});
+
 describe('PDF-Betrachter des Kerns', () => {
   it('blendet Hand und Auswählen nur im pdfeditor aus', async () => {
     const { readFileSync } = await import('node:fs');

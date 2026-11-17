@@ -36,8 +36,9 @@ speichern – ohne Konto, ohne Server, alles auf dem Gerät. Schwester-App der F
 - **Farben (Klaus 17.11.):** die helle Standardansicht („Klassisch Hell“) startet in blassen Wasserfarben mit
   Pinselverlauf in der Kopfleiste – wie die Kacheln der Startseite: Schreiben blau, Tabellen grün, Folien
   koralle. Runder Farbknopf rechts in der Kopfleiste: Wie die Kachel · Wasserblau · Wassergrün · Helles Gelb ·
-  Koralle · Kräftig (die dunklen Familienakte-Farben aus `lib/onlyoffice/guards/chrome.ts`). Je Gerät gemerkt
-  (`fb-farbe`). Die übrigen Ansichten des Editors (Ansicht → Thema) bleiben unverändert, dort kein Knopf.
+  Koralle · Kräftig (die dunklen Familienakte-Farben aus `lib/onlyoffice/guards/chrome.ts`). **Je Programm** und Gerät
+  gemerkt (`fb-farbe-text`, `-tabelle`, `-folien`, `-pdf`, Workflow PDF `-wfpdf`; Klaus 17.11.: eine neue Farbe in einem
+  Programm ändert die anderen nicht). Die übrigen Ansichten des Editors (Ansicht → Thema) bleiben unverändert, dort kein Knopf.
   `lib/onlyoffice/farbpalette.ts`, Probe `test/unit/farbpalette.test.ts`.
 - **Geschenk nur mit der Web-App (Klaus 17.11., für Jens):** `…/geschenk/web/` (`familienbuero/geschenk/web/index.html`):
   Box, Buch, der Anhänger öffnet die Web-App direkt – ohne APK und Windows, solange die am Gerät ungeprüft sind.
@@ -50,7 +51,7 @@ speichern – ohne Konto, ohne Server, alles auf dem Gerät. Schwester-App der F
   `node bin/wfpdf-nachziehen.mjs`** (`--pruefen` vergleicht; läuft im Bau). Eigen: Brücke und Farben in
   `familienbuero/wfpdf/` (eigene Datenbank `FamilienbueroWFPDF1`, kein eigener Worker, „⟳“ ohne fremde
   Vorräte, Pfeil zurück zur Startseite). Farben: Wasserfarben-Rot mit Pinselverlauf und dieselbe Farbwahl wie im
-  Editor (Knopf im Kopf, gemeinsamer Schlüssel `fb-farbe`; ohne Wahl rot, „Kräftig“ = eigene Farben von Workflow PDF). Grund: das eingebaute PDF-Programm des Büro-Kerns speichert eine
+  Editor (Knopf im Kopf, eigener Schlüssel `fb-farbe-wfpdf`; ohne Wahl rot, „Kräftig“ = eigene Farben von Workflow PDF). Grund: das eingebaute PDF-Programm des Büro-Kerns speichert eine
   bearbeitete PDF als Word-Datei. Workflow PDF ist der Scanner und das Ausfüll-Werkzeug (Felder erkennen); den Text einer PDF bearbeitet man im Schreibprogramm.
 - **PDF im Schreibprogramm bearbeiten (Klaus 17.11.: „wie in Corel“):** eine über „Datei öffnen“ gewählte PDF geht bei
   deutscher Oberfläche bearbeitbar im Schreibprogramm auf (`pdfBearbeitbar` in `lib/pdf-import/index.ts`, Anschluss in
@@ -71,6 +72,12 @@ speichern – ohne Konto, ohne Server, alles auf dem Gerät. Schwester-App der F
   beschnittene Bilder bleiben im Hintergrund, Text auf Fotos oder Verläufen hinterlässt einen einfarbigen Fleck; das
   Ergebnis ist eine Word-Datei (als PDF über „Herunterladen als“). Geprüft an einem 27-seitigen Heft mit farbigen Kästen
   und Tabellen. Probe `test/unit/pdf-import.test.ts`.
+- **PDF als Folien (Klaus 17.11.):** im Folienprogramm baut „Datei → PDF importieren“ ohne Rückfrage Folien
+  (`lib/pdf-import/pptx.ts`, Schema aus der leeren Vorlage in `pptx-thema.ts`): jede Seite eine Folie in der Größe der Seite,
+  Seitenbild als Folienhintergrund, Bilder als eigene Objekte, jede Zeile/Spalte als eigenes Textfeld ohne Umbruch mit Farbe,
+  Fett/Kursiv und Sperrung. Für Tabellen nicht gebaut.
+- **KI-Assistent, Schlüssel (Klaus 17.11.):** unter dem Feld „API-Schlüssel“ steht „API-Schlüssel holen ›“ zur Schlüsselseite des
+  gewählten Dienstes (`KEY_PAGES` in `lib/agent-plugin/ui/settings-view.ts`; beim lokalen Dienst kein Link).
 - **Reiterleiste am Handy (Klaus 17.11.):** Datei/Startseite/… lässt sich mit dem Finger schieben, die kleinen
   Pfeile entfallen bei Berührung; bis 760 px weichen Dateiname und Beschriftung „Bearbeitung“ aus der Zeile
   (`lib/onlyoffice/guards/chrome.ts`).

@@ -184,3 +184,22 @@ it('initializes offline disclosure from navigator without changing the chosen so
     else delete (navigator as unknown as Record<string, unknown>).onLine;
   }
 });
+
+it('zeigt unter dem Schlüsselfeld den Weg zur Schlüsselseite des gewählten Dienstes', () => {
+  const { controls } = setup('service');
+  const link = controls.endpointRow.querySelector<HTMLAnchorElement>('#agent-endpoint-key-link')!;
+  // Ohne Dienst mit Schlüssel (lokaler Dienst) gibt es keinen Link.
+  expect(link.hidden).toBe(true);
+  controls.endpointKind.setAttribute('value', 'anthropic');
+  controls.endpointKind.dispatchEvent(new Event('change'));
+  expect(link.hidden).toBe(false);
+  expect(link.href).toBe('https://console.anthropic.com/settings/keys');
+  expect(link.target).toBe('_blank');
+  controls.endpointKind.setAttribute('value', 'gemini');
+  controls.endpointKind.dispatchEvent(new Event('change'));
+  expect(link.href).toBe('https://aistudio.google.com/apikey');
+  controls.endpointKind.setAttribute('value', 'loopback');
+  controls.endpointKind.dispatchEvent(new Event('change'));
+  expect(link.hidden).toBe(true);
+  document.body.replaceChildren();
+});

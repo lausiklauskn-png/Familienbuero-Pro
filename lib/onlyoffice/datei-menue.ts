@@ -20,9 +20,17 @@ const EINTRAEGE: Eintrag[] = [
     id: 'fb-fm-pdf-import',
     de: 'PDF importieren',
     en: 'Import PDF',
-    // Der Import ergibt ein Textdokument: nur im Schreibprogramm anbieten.
+    // Im Schreibprogramm ein Textdokument (Fließtext oder seitengetreu) ...
     nur: /documenteditor/,
     tun: () => void laden().then((m) => m.pdfImportieren()),
+  },
+  {
+    id: 'fb-fm-pdf-import',
+    de: 'PDF importieren',
+    en: 'Import PDF',
+    // ... im Folienprogramm Folien: jede Seite eine Folie, Texte und Bilder als eigene Objekte.
+    nur: /presentationeditor/,
+    tun: () => void laden().then((m) => m.pdfImportieren(undefined, 'folien')),
   },
 ];
 

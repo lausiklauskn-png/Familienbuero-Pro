@@ -1,5 +1,5 @@
 import { Div, Label, Span, View } from 'ranui/builder';
-import { t, type I18nMessages } from '@ranuts/shared/i18n';
+import { getLanguage, t, type I18nMessages } from '@ranuts/shared/i18n';
 
 interface SettingsControls {
   modelSelect: HTMLElement;
@@ -25,6 +25,13 @@ interface SettingsControls {
 }
 
 /** Settings layout and labels; providers and task state remain outside the view. */
+/** Wo man beim jeweiligen Dienst einen API-Schlüssel anlegt. */
+export const KEY_PAGES: Record<string, string> = {
+  anthropic: 'https://console.anthropic.com/settings/keys',
+  'openai-compatible': 'https://platform.openai.com/api-keys',
+  gemini: 'https://aistudio.google.com/apikey',
+};
+
 export function createPanelSettingsView(controls: SettingsControls) {
   const {
     modelSelect,
@@ -73,11 +80,29 @@ export function createPanelSettingsView(controls: SettingsControls) {
     wrapper.append(title, control);
     return wrapper;
   };
+  // Familienbüro Pro (Klaus 17.11.2026): unter dem Schlüsselfeld der Weg zur Seite des gewählten
+  // Dienstes, auf der man einen API-Schlüssel anlegt.
+  const keyLink = document.createElement('a');
+  keyLink.id = 'agent-endpoint-key-link';
+  keyLink.className = 'agent-endpoint-key-link';
+  keyLink.target = '_blank';
+  keyLink.rel = 'noopener noreferrer';
+  keyLink.style.cssText = 'display:inline-block;margin:-4px 0 8px;font-size:13px;text-decoration:underline';
+  const syncKeyLink = (): void => {
+    const kind = (endpointKind as HTMLElement & { value?: string }).value ?? endpointKind.getAttribute('value') ?? '';
+    const url = KEY_PAGES[kind];
+    keyLink.hidden = !url;
+    if (url) keyLink.href = url;
+    keyLink.textContent = getLanguage() === 'de' ? 'API-Schlüssel holen ›' : 'Get an API key ›';
+  };
+  endpointKind.addEventListener('change', syncKeyLink);
+  syncKeyLink();
   endpointRow.replaceChildren(
     field(endpointKind, 'agentEndpointKind'),
     field(endpointBaseUrl, 'agentEndpointUrl'),
     field(endpointModel, 'agentEndpointModel'),
     field(endpointKey, 'agentEndpointKey'),
+    keyLink,
     endpointConnect,
     endpointStatus,
   );

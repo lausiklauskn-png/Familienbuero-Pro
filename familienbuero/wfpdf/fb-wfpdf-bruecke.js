@@ -129,7 +129,7 @@
   ];
   var gewaehlt = function () {
     try {
-      var w = W.localStorage.getItem('fb-farbe');
+      var w = W.localStorage.getItem('fb-farbe-wfpdf');
       for (var i = 0; i < FARBEN.length; i++) if (FARBEN[i][0] === w) return w;
     } catch {
       /* ohne Speicher: Vorgabe */
@@ -178,7 +178,7 @@
       b.addEventListener('click', function () {
         anwenden(f[0]);
         try {
-          W.localStorage.setItem('fb-farbe', f[0]);
+          W.localStorage.setItem('fb-farbe-wfpdf', f[0]);
         } catch {
           /* ohne Speicher gilt die Wahl bis zum Schließen */
         }
