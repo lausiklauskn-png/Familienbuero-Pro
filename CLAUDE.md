@@ -61,6 +61,9 @@ speichern – ohne Konto, ohne Server, alles auf dem Gerät. Schwester-App der F
   Zeile als Textrahmen an ihrer Stelle. Grenzen: keine Bilder, Linien, Tabellenrahmen, kein Fett/Kursiv im
   seitengetreuen Import; Scans ohne Textebene werden abgewiesen (Hinweis auf die Kachel „PDF“).
   Probe `test/unit/pdf-import.test.ts`.
+- **Reiterleiste am Handy (Klaus 17.11.):** Datei/Startseite/… lässt sich mit dem Finger schieben, die kleinen
+  Pfeile entfallen bei Berührung; bis 760 px weichen Dateiname und Beschriftung „Bearbeitung“ aus der Zeile
+  (`lib/onlyoffice/guards/chrome.ts`).
 - **Unterordner:** die App läuft unter `/Familienbuero-Pro/`. Dafür relative Pfade in Startseite, Editor,
   Verlauf; `public/sw.js` (BASE/lokal), `public/sw-register.js`, `public/landing-prefetch.js`,
   `lib/offline-worker-control.ts` (`appRoot`), `lib/onlyoffice/guards/x2t-worker.ts`.
