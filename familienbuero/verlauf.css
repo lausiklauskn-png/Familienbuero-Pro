@@ -1,0 +1,46 @@
+/* Familienbüro Pro: die Seite „Zuletzt bearbeitet“ im Bild der Startseite.
+   Wird beim Veröffentlichen von bin/einfacher-server.mjs in history.html gesetzt. */
+html,
+body {
+  color: #14273a;
+  font-family: 'Segoe UI Variable', 'Segoe UI', system-ui, Roboto, Arial, sans-serif;
+}
+body {
+  min-height: 100svh;
+  background:
+    radial-gradient(60vw 46vh at 8% -6%, rgba(63, 143, 208, 0.3), transparent 62%),
+    radial-gradient(52vw 44vh at 100% 4%, rgba(8, 127, 122, 0.2), transparent 60%),
+    radial-gradient(70vw 50vh at 50% 112%, rgba(11, 49, 84, 0.16), transparent 62%), #f3f6fb !important;
+  background-attachment: fixed !important;
+}
+header.bar {
+  background: rgba(255, 255, 255, 0.62) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  backdrop-filter: blur(18px) saturate(1.4);
+  border-bottom: 1px solid rgba(11, 49, 84, 0.08) !important;
+}
+header.bar .brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: #0b3154 !important;
+  font-weight: 600;
+}
+header.bar .brand img {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  box-shadow: 0 2px 8px rgba(11, 49, 84, 0.18);
+}
+/* Kein fremder Verweis, keine Sprach- und Farbwahl: die Sprache folgt dem Gerät. */
+header.bar nav,
+.history-chip,
+.history-intro,
+.history-empty-body,
+.history-rail-block .history-note + .history-note {
+  display: none !important;
+}
+.history-title {
+  color: #0b3154 !important;
+  letter-spacing: -0.02em;
+}

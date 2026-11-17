@@ -89,7 +89,25 @@ writeFileSync(resolve(dist, 'robots.txt'), 'User-agent: *\nDisallow: /\n');
 const verlauf = resolve(dist, 'history.html');
 if (existsSync(verlauf)) {
   const vorher = readFileSync(verlauf, 'utf8');
-  const nachher = vorher.replaceAll('href="/"', 'href="./"').replaceAll('href="/history?', 'href="./history?');
+  // Dazu das Bild der Startseite: eigener Name und eigenes Zeichen im Kopf, immer hell,
+  // ohne die Verweise und Erklärtexte der Vorlage (familienbuero/verlauf.css).
+  const stil = readFileSync(new URL('../familienbuero/verlauf.css', import.meta.url), 'utf8');
+  const nachher = vorher
+    .replaceAll('href="/"', 'href="./"')
+    .replaceAll('href="/history?', 'href="./history?')
+    .replace("var t = localStorage.getItem('ran-theme');", "var t = 'light';")
+    .replace('<title>Local history</title>', '<title>Familienbüro Pro</title>')
+    .replace(
+      '<span class="wordmark">Document Editor</span>',
+      '<img src="./icons/document-192.png" alt="" /><span class="wordmark">Familienbüro Pro</span>',
+    )
+    .replace('</head>', `<style id="fb-verlauf">${stil}</style></head>`);
+  for (const muss of ["var t = 'light';", 'id="fb-verlauf"', 'Familienbüro Pro</span>']) {
+    if (!nachher.includes(muss)) {
+      console.error('Verlaufsseite: erwartete Stelle der Vorlage nicht gefunden:', muss);
+      process.exit(1);
+    }
+  }
   if (nachher !== vorher) {
     writeFileSync(verlauf, nachher);
     console.log('Verlaufsseite: Verweise an den Ordner gebunden.');
