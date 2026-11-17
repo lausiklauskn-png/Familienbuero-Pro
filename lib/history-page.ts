@@ -139,6 +139,14 @@ function buildRow(doc: HistoryDoc, refresh: () => void): HTMLElement {
   // day left" reads like a fact rather than like a prompt to do something.
   const expiryUrgent = days <= 1;
 
+  // Familienbüro Pro: relativ zum Ordner der Seite (die App liegt unter
+  // /Familienbuero-Pro/); eine Adresse ab der Wurzel des Servers führte dort
+  // auf eine Fehlerseite. In der Android-Hülle heißt die Seite editor.html.
+  const openHref = withLocale(
+    `${isNativeShell() ? './editor.html' : './editor'}?saved=${encodeURIComponent(doc.id)}`,
+    getLanguage(),
+  );
+
   // Title line: what it is called, plus the one status worth interrupting for.
   const titleLine = Div()
     .class('history-row-title-line')
@@ -147,7 +155,7 @@ function buildRow(doc: HistoryDoc, refresh: () => void): HTMLElement {
         .class('history-row-title history-open')
         // Carry the language: this page knows which one it is in, and the
         // editor should not have to guess it again from the browser.
-        .attr('href', withLocale(`/editor?saved=${encodeURIComponent(doc.id)}`, getLanguage()))
+        .attr('href', openHref)
         .text(doc.title)
         .build(),
       ...(hasUnsavedWork(doc)
@@ -189,6 +197,15 @@ function buildRow(doc: HistoryDoc, refresh: () => void): HTMLElement {
           // until now the only way was to open the editor and save from there.
           // The bytes are already in IndexedDB; this writes them straight to
           // disk (File System Access where available, download elsewhere).
+          // Familienbüro Pro: ein sichtbarer Knopf zum Öffnen -- dass der Name
+          // selbst der Verweis ist, sieht man ihm nicht an.
+          button(
+            t('historyOpen'),
+            () => {
+              window.location.href = openHref;
+            },
+            { type: 'text', class: 'history-open-button' },
+          ),
           button(
             t('historyDownload'),
             () => {
@@ -353,7 +370,9 @@ async function render(forceSweep = false): Promise<void> {
                   t('historyBack'),
                   () => {
                     // Back to the homepage the reader came from, not to English.
-                    window.location.href = localeHomePath(getLanguage());
+                    // Familienbüro Pro hat nur die eine Startseite im eigenen Ordner.
+                    const sprache = getLanguage();
+                    window.location.href = sprache === 'de' || sprache === 'en' ? './' : localeHomePath(sprache);
                   },
                   { type: 'text', class: 'history-back' },
                 ),
