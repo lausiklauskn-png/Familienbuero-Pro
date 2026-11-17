@@ -1,0 +1,45 @@
+/* Familienbüro Pro: Farben im eingebetteten Klon von Workflow PDF. Letztes Stylesheet
+   (bin/wfpdf-nachziehen.mjs); der Klon selbst ist byte-gleich. Vorbild: fa-wfpdf-thema.css der Familienakte.
+   Ausgeblendet: Mycel-Leiste, Installieren und ⟳ (gehören zum Familienbüro, nicht zum Klon),
+   „Im Netz antworten“ (braucht den Mycel-Knoten). */
+:root {
+  --rot: #087f7a;
+  --rot-d: #0b3154;
+  --rot-h: #e8f6f5;
+  --blau: #164f7d;
+  --blau-h: #edf5fb;
+  --ink: #15283a;
+  --ink2: #627181;
+  --linie: #d8e2ea;
+  --grund: #f2f7fa;
+  --flaeche: #fff;
+  --ok: #167249;
+  --schatten: 0 9px 30px rgba(16, 52, 83, 0.08);
+}
+.kopf {
+  border-bottom-color: #087f7a;
+}
+.netzleiste,
+#btnInstall,
+#stInstall,
+#btnNeu,
+[data-netz-antworten] {
+  display: none !important;
+}
+#fb-zurueck {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  margin-right: 6px;
+  border-radius: 10px;
+  color: #0b3154;
+  font-size: 26px;
+  line-height: 1;
+  text-decoration: none;
+  flex: 0 0 auto;
+}
+#fb-zurueck:hover {
+  background: rgba(11, 49, 84, 0.08);
+}

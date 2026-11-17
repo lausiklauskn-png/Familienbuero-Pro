@@ -8,6 +8,7 @@
     "**/*.snap",
     "**/node_modules/**",
     "public/sdkjs/**",
+    "familienbuero/workflow-pdf/**",
     "public/web-apps/**",
     "public/fonts/**",
     "public/libs/sheetjs/xlsx.full.min.js",
