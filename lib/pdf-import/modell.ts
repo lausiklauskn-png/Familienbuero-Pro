@@ -34,6 +34,8 @@ export interface Teil {
   laeufe?: Lauf[];
   /** Laufweite in Prozent, damit die Ersatzschrift so breit läuft wie das Original. */
   weite?: number;
+  /** Gesperrte Schrift (B E I  U N S): der Abstand zwischen den Buchstaben in Punkt. */
+  sperrung?: number;
 }
 
 export interface Zeile {
@@ -82,24 +84,53 @@ export function zeilenAus(stuecke: Stueck[]): Zeile[] {
     if (letzte && Math.abs(letzte[0].oben - s.oben) < Math.max(letzte[0].groesse, s.groesse) * 0.5) letzte.push(s);
     else zeilen.push([s]);
   }
-  return zeilen.map((stuecke) => {
+  return zeilen.map((roh) => {
+    // Gesperrte Schrift liefert der PDF-Leser oft schon mit Leerzeichen zwischen den Buchstaben
+    // („B E I“, „U N S“): zurück zu Wörtern, die Sperrung wird Zeichenabstand.
+    const muster = /^\S( \S)+$/;
+    const gesperrteZeile = roh.some((s) => muster.test(s.text.trim()) && s.text.trim().length >= 5);
+    const zusammen = new Set<Stueck>();
+    const stuecke = roh.map((s) => {
+      if (!gesperrteZeile || !muster.test(s.text.trim())) return s;
+      const neu = { ...s, text: s.text.trim().replace(/ /g, '') };
+      zusammen.add(neu);
+      return neu;
+    });
     stuecke.sort((a, b) => a.x - b.x);
     const teile: Teil[] = [];
     const gleich = (l: Lauf, t: Stueck): boolean =>
       !!l.fett === !!t.fett && !!l.kursiv === !!t.kursiv && (l.farbe ?? '') === (t.farbe ?? '');
+    // Gesperrte Schrift kommt Buchstabe für Buchstabe: der übliche Abstand zwischen einzelnen
+    // Buchstaben ist dann die Sperrung, erst eine deutlich größere Lücke trennt Wörter.
+    const einzeln = (s: Stueck): boolean => s.text.trim().length === 1;
+    const abstaende: number[] = [];
+    for (let i = 1; i < stuecke.length; i++) {
+      const vor = stuecke[i - 1];
+      if (einzeln(vor) && einzeln(stuecke[i])) abstaende.push(stuecke[i].x - vor.x - vor.breite);
+    }
+    abstaende.sort((a, b) => a - b);
+    const mitte = abstaende[Math.floor(abstaende.length / 2)] ?? 0;
+    const sperrung = abstaende.length >= 3 && mitte > stuecke[0].groesse * 0.12 ? mitte : 0;
     let ende = stuecke[0].x;
+    let vorher: Stueck | undefined;
     for (const t of stuecke) {
       const luecke = t.x - ende;
       const letzter = teile[teile.length - 1];
-      if (!letzter || luecke > t.groesse * 0.9) {
+      const gesperrt = sperrung > 0 && vorher !== undefined && einzeln(vorher) && einzeln(t);
+      vorher = t;
+      if (!letzter || luecke > Math.max(t.groesse * 0.9, sperrung * 5)) {
         teile.push({
           text: t.text,
           x: t.x,
           breite: t.breite,
           laeufe: [{ text: t.text, fett: t.fett, kursiv: t.kursiv, farbe: t.farbe }],
+          ...(sperrung > 0 && einzeln(t) ? { sperrung } : {}),
+          // Vorläufiger Wert; der Leser misst die Sperrung an der Ersatzschrift nach.
+          ...(zusammen.has(t) ? { sperrung: Math.max(0.5, t.groesse * 0.15) } : {}),
         });
       } else {
-        const leer = luecke > t.groesse * 0.2 && !letzter.text.endsWith(' ') && !t.text.startsWith(' ');
+        const wortluecke = gesperrt ? luecke > sperrung * 2.2 : luecke > t.groesse * 0.2;
+        const leer = wortluecke && !letzter.text.endsWith(' ') && !t.text.startsWith(' ');
         const dazu = (leer ? ' ' : '') + t.text;
         letzter.text += dazu;
         letzter.breite = t.x + t.breite - letzter.x;
@@ -158,9 +189,15 @@ export function kastenFarben(punkte: Uint8ClampedArray): { papier: [number, numb
     return beste && [Math.round(beste[0] / beste[3]), Math.round(beste[1] / beste[3]), Math.round(beste[2] / beste[3])];
   };
   const papier = zaehlen(() => true) ?? [255, 255, 255];
-  const fern = (r: number, g: number, b: number): boolean =>
-    Math.abs(r - papier[0]) + Math.abs(g - papier[1]) + Math.abs(b - papier[2]) > 150;
-  const schrift = zaehlen(fern);
+  const abstand = (r: number, g: number, b: number): number =>
+    Math.abs(r - papier[0]) + Math.abs(g - papier[1]) + Math.abs(b - papier[2]);
+  // Erst alles, was sich abhebt; davon zählt nur der Kern der Buchstaben, nicht ihr weicher Rand:
+  // die Farben nahe am größten Abstand zum Papier.
+  let weitester = 0;
+  for (let i = 0; i + 3 < punkte.length; i += 4) {
+    weitester = Math.max(weitester, abstand(punkte[i], punkte[i + 1], punkte[i + 2]));
+  }
+  const schrift = weitester > 150 ? zaehlen((r, g, b) => abstand(r, g, b) >= weitester * 0.8) : undefined;
   const hex = (n: number): string => n.toString(16).padStart(2, '0');
   return { papier, schrift: schrift && hex(schrift[0]) + hex(schrift[1]) + hex(schrift[2]) };
 }

@@ -39,18 +39,20 @@ const lauf = (
   kursiv = false,
   farbe?: string,
   weite?: number,
+  sperrung?: number,
 ): string =>
   `<w:rFonts w:ascii="${SCHRIFT[schrift]}" w:hAnsi="${SCHRIFT[schrift]}" w:cs="${SCHRIFT[schrift]}"/>` +
   (fett ? '<w:b/>' : '') +
   (kursiv ? '<w:i/>' : '') +
   (farbe && /^[0-9a-f]{6}$/i.test(farbe) ? `<w:color w:val="${farbe.toUpperCase()}"/>` : '') +
+  (sperrung ? `<w:spacing w:val="${twips(sperrung)}"/>` : '') +
   (weite ? `<w:w w:val="${weite}"/>` : '') +
   `<w:sz w:val="${halbe(groesse)}"/><w:szCs w:val="${halbe(groesse)}"/>`;
 
 /** Die Läufe eines Teils mit Fett, Kursiv, Farbe und Laufweite. */
 function teilLaeufe(teil: Teil, schrift: Stueck['schrift'], groesse: number): string {
   return (teil.laeufe ?? [{ text: teil.text }])
-    .map((l) => laeufe(l.text, lauf(schrift, groesse, l.fett, l.kursiv, l.farbe, teil.weite)))
+    .map((l) => laeufe(l.text, lauf(schrift, groesse, l.fett, l.kursiv, l.farbe, teil.weite, teil.sperrung)))
     .join('');
 }
 
@@ -129,7 +131,7 @@ function koerperSeitengetreu(seiten: Seite[]): string {
       // Spalten und Tabellenzellen einer Zeile werden eigene Rahmen.
       for (const teil of z.teile ?? [z]) {
         // Etwas Luft in der Breite: die Ersatzschrift läuft selten genau so breit wie das Original.
-        const breite = twips(Math.min(seite.breite - teil.x, teil.breite * 1.08 + 6));
+        const breite = twips(Math.min(seite.breite - teil.x, teil.breite * 1.15 + 10));
         const rahmen = `<w:framePr w:w="${breite}" w:hRule="auto" w:hAnchor="page" w:vAnchor="page" w:x="${twips(teil.x)}" w:y="${twips(z.oben)}" w:wrap="around"/>`;
         teile.push(
           `<w:p><w:pPr>${rahmen}<w:spacing w:before="0" w:after="0" w:line="240" w:lineRule="auto"/></w:pPr>${bild}${teilLaeufe(teil, z.schrift, z.groesse)}</w:p>`,

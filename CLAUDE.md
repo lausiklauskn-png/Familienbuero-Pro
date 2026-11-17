@@ -58,7 +58,9 @@ speichern – ohne Konto, ohne Server, alles auf dem Gerät. Schwester-App der F
   Rahmen) mit Fett/Kursiv (aus dem Schriftnamen), Schriftfarbe (aus dem Seitenbild gelesen) und der Laufweite des Originals
   (`w:w`, damit die Ersatzschrift nicht umbricht); die Bilder der Seite als eigene, bewegliche Objekte; alles Übrige (Linien,
   Tabellenrahmen, Flächen) als Seitenbild im Hintergrund, in dem jedes Textstück in der Farbe seines Untergrunds übermalt
-  ist (weiße Schrift auf rotem Balken hinterlässt den roten Balken, nicht Weiß). **Keine Texterkennung in Bildern (Klaus
+  ist (weiße Schrift auf rotem Balken hinterlässt den roten Balken, nicht Weiß). Gesperrte Schrift („B E I U N S“, kommt aus dem
+  PDF-Leser mit Leerzeichen zwischen den Buchstaben) wird wieder zu Wörtern mit Zeichenabstand (`w:spacing`, mindestens ein
+  Zehntel der Schriftgröße); die Rahmen sind 15 % breiter als der Text, damit nichts in die nächste Zeile rutscht. **Keine Texterkennung in Bildern (Klaus
   17.11.: „das geht nur mit KI“):** Seiten ohne Textebene (Scans, Titelbilder) bleiben ein Bild; Scannen ist Sache der
   Kachel „PDF“. Menü „Datei“ hat dazu „Öffnen“ und (nur im Schreibprogramm) „PDF importieren“ mit der Wahl „Als Fließtext“
   (Überschriften, Absätze, ohne Bilder) oder „Seitengetreu“ (wie oben) (`lib/onlyoffice/datei-menue.ts`). Bau: `lesen.ts`
