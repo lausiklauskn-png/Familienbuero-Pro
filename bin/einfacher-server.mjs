@@ -99,7 +99,8 @@ if (existsSync(verlauf)) {
     .replace('<title>Local history</title>', '<title>Familienbüro Pro</title>')
     .replace(
       '<span class="wordmark">Document Editor</span>',
-      '<img src="./icons/document-192.png" alt="" /><span class="wordmark">Familienbüro Pro</span>',
+      '<img src="./icons/document-192.png" alt="" id="fb-zeichen" /><span class="wordmark">Familienbüro Pro</span>' +
+        '<script>if((window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform())||window.__TAURI_INTERNALS__)document.getElementById("fb-zeichen").src="./icons/pro/familienbuero-pro-192.png"</script>',
     )
     .replace('</head>', `<style id="fb-verlauf">${stil}</style></head>`);
   for (const muss of ["var t = 'light';", 'id="fb-verlauf"', 'Familienbüro Pro</span>']) {

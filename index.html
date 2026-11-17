@@ -31,7 +31,11 @@
         try {
           localStorage.setItem('document-lang', sprache);
         } catch (e) {}
+        // In den Hüllen (Android-APK, Windows-Programm) trägt der Kopf das Pro-Zeichen.
+        var inHuelle = inAndroidHuelle || Boolean(window.__TAURI_INTERNALS__);
         document.addEventListener('DOMContentLoaded', function () {
+          var zeichen = document.querySelector('.kopf img');
+          if (inHuelle && zeichen) zeichen.src = './icons/pro/familienbuero-pro-192.png';
           document.querySelectorAll('[data-sprache]').forEach(function (el) {
             ['href', 'data-open-local'].forEach(function (name) {
               var wert = el.getAttribute(name);
