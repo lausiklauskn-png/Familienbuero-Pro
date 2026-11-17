@@ -57,7 +57,8 @@ speichern – ohne Konto, ohne Server, alles auf dem Gerät. Schwester-App der F
   deutscher Oberfläche bearbeitbar im Schreibprogramm auf (`pdfBearbeitbar` in `lib/pdf-import/index.ts`, Anschluss in
   `openLocalFile`, `lib/document.ts`): jede Textzeile als Textrahmen an ihrer Stelle (Spalten und Tabellenzellen als eigene
   Rahmen) mit Fett/Kursiv (aus dem Schriftnamen), Schriftfarbe (aus dem Seitenbild gelesen) und der Laufweite des Originals
-  (`w:w`, damit die Ersatzschrift nicht umbricht); die Bilder der Seite als eigene, bewegliche Objekte; alles Übrige (Linien,
+  (`w:w`, damit die Ersatzschrift nicht umbricht; die Breiten kommen aus festen Tabellen, `textBreite` in `modell.ts`,
+  **nicht aus einer Messung am Gerät** – sonst liefern Tablet, APK und Rechner verschiedene Ergebnisse); die Bilder der Seite als eigene, bewegliche Objekte; alles Übrige (Linien,
   Tabellenrahmen, Flächen) als Seitenbild im Hintergrund, in dem jedes Textstück in der Farbe seines Untergrunds übermalt
   ist (weiße Schrift auf rotem Balken hinterlässt den roten Balken, nicht Weiß). Gesperrte Schrift („B E I U N S“, kommt aus dem
   PDF-Leser mit Leerzeichen zwischen den Buchstaben) wird wieder zu Wörtern mit Zeichenabstand (`w:spacing`, mindestens ein

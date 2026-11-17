@@ -129,7 +129,9 @@ export function zeilenAus(stuecke: Stueck[]): Zeile[] {
           ...(zusammen.has(t) ? { sperrung: Math.max(0.5, t.groesse * 0.15) } : {}),
         });
       } else {
-        const wortluecke = gesperrt ? luecke > sperrung * 2.2 : luecke > t.groesse * 0.2;
+        // Nach gesperrter Schrift ist schon eine kleine Lücke ein Wortabstand („REZEPT 6“).
+        const nachGesperrtem = zusammen.has(t) || letzter.sperrung !== undefined;
+        const wortluecke = gesperrt ? luecke > sperrung * 2.2 : luecke > t.groesse * (nachGesperrtem ? 0.06 : 0.2);
         const leer = wortluecke && !letzter.text.endsWith(' ') && !t.text.startsWith(' ');
         const dazu = (leer ? ' ' : '') + t.text;
         letzter.text += dazu;
@@ -219,6 +221,94 @@ export function schriftArt(name: string): { schrift: Stueck['schrift']; fett: bo
     fett: /bold|black|heavy|semibold|demi|medium|extrab/.test(n),
     kursiv: /italic|oblique|kursiv/.test(n),
   };
+}
+
+/** Zeichenbreiten der Ersatzschriften in Tausendstel der Schriftgröße (Zeichen 32 bis 126). */
+const BREITEN_SANS = [
+  278, 278, 355, 556, 556, 889, 667, 191, 333, 333, 389, 584, 278, 333, 278, 278, 556, 556, 556, 556, 556, 556, 556,
+  556, 556, 556, 278, 278, 584, 584, 584, 556, 1015, 667, 667, 722, 722, 667, 611, 778, 722, 278, 500, 667, 556, 833,
+  722, 778, 667, 778, 722, 667, 611, 722, 667, 944, 667, 667, 611, 278, 278, 278, 469, 556, 333, 556, 556, 500, 556,
+  556, 278, 556, 556, 222, 222, 500, 222, 833, 556, 556, 556, 556, 333, 500, 278, 556, 500, 722, 500, 500, 500, 334,
+  260, 334, 584,
+];
+const BREITEN_SERIF = [
+  250, 333, 408, 500, 500, 833, 778, 180, 333, 333, 500, 564, 250, 333, 250, 278, 500, 500, 500, 500, 500, 500, 500,
+  500, 500, 500, 278, 278, 564, 564, 564, 444, 921, 722, 667, 667, 722, 611, 556, 722, 722, 333, 389, 722, 611, 889,
+  722, 722, 556, 722, 667, 556, 611, 722, 722, 944, 722, 722, 611, 333, 278, 333, 469, 500, 333, 444, 500, 444, 500,
+  444, 333, 500, 500, 278, 278, 500, 278, 778, 500, 500, 500, 500, 333, 389, 278, 500, 500, 722, 500, 500, 444, 480,
+  200, 480, 541,
+];
+const GLEICH: Record<string, string> = {
+  ä: 'a',
+  ö: 'o',
+  ü: 'u',
+  Ä: 'A',
+  Ö: 'O',
+  Ü: 'U',
+  é: 'e',
+  è: 'e',
+  á: 'a',
+  à: 'a',
+  ç: 'c',
+  ñ: 'n',
+  '„': '"',
+  '“': '"',
+  '”': '"',
+  '‚': "'",
+  '‘': "'",
+  '’': "'",
+  '–': '_',
+  '€': '0',
+  '×': '+',
+  '·': '.',
+  '…': 'm',
+};
+
+/**
+ * Wie breit ein Text in der Ersatzschrift läuft, in Punkt. Aus festen Tabellen (Arial, Times New
+ * Roman, Courier New), nicht am Gerät gemessen: dort fehlen diese Schriften oft, und ein Tablet
+ * käme zu anderen Breiten als ein Rechner.
+ */
+export function textBreite(text: string, schrift: Stueck['schrift'], groesse: number, fett = false): number {
+  if (schrift === 'mono') return text.length * 0.6 * groesse;
+  const tabelle = schrift === 'serif' ? BREITEN_SERIF : BREITEN_SANS;
+  const ersatz = schrift === 'serif' ? 500 : 556;
+  let summe = 0;
+  for (const zeichen of text) {
+    const z = GLEICH[zeichen] ?? zeichen;
+    const nr = z.charCodeAt(0) - 32;
+    summe += z === 'ß' ? ersatz + 55 : z === '\t' ? ersatz * 2 : (tabelle[nr] ?? ersatz);
+  }
+  return (summe / 1000) * groesse * (fett ? 1.07 : 1);
+}
+
+/**
+ * Laufweite und Sperrung je Teil: der Text soll in der Ersatzschrift so breit laufen wie im Original,
+ * damit nichts über den Rand ragt oder in die nächste Zeile rutscht.
+ */
+export function weitenSetzen(zeilen: Zeile[]): void {
+  for (const z of zeilen) {
+    for (const teil of z.teile ?? []) {
+      let breite = 0;
+      for (const lauf of teil.laeufe ?? []) breite += textBreite(lauf.text, z.schrift, z.groesse, lauf.fett);
+      if (breite <= 0 || teil.breite <= 0) continue;
+      if (teil.sperrung) {
+        // Gesperrte Schrift: der Rest der Breite verteilt sich als Abstand zwischen den Zeichen --
+        // mindestens ein Zehntel der Schriftgröße, damit die Buchstaben nie aneinander kleben. Läuft die
+        // Ersatzschrift dafür zu breit, wird sie schmaler gestellt.
+        const luecken = Math.max(1, teil.text.length - 1);
+        const mindestens = z.groesse * 0.1;
+        teil.sperrung = Math.min(z.groesse, Math.max(mindestens, (teil.breite - breite) / luecken));
+        const rest = teil.breite - teil.sperrung * luecken;
+        if (rest < breite * 0.97) teil.weite = Math.max(50, Math.round((rest / breite) * 96));
+        continue;
+      }
+      // Etwas knapper als gerechnet: lieber eine Spur schmaler als ein Buchstabe in der nächsten Zeile.
+      const weite = Math.round((teil.breite / breite) * 97);
+      // Nur deutliche Abweichungen ausgleichen, und nicht bis zur Unleserlichkeit.
+      if (weite < 95 || weite > 108) teil.weite = Math.min(130, Math.max(50, weite));
+    }
+  }
 }
 
 /**

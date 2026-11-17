@@ -7,6 +7,8 @@ import {
   zeilenAus,
   kastenFarben,
   schriftArt,
+  textBreite,
+  weitenSetzen,
   type Seite,
   type Stueck,
 } from '../../lib/pdf-import/modell';
@@ -294,6 +296,53 @@ describe('PDF-Import', () => {
     for (const teil of ['ppt/presentation.xml', 'ppt/slides/slide2.xml', 'ppt/media/bild2.jpg', 'ppt/theme/theme1.xml'])
       expect(zip).toContain(teil);
     expect(zip).toContain(`<p:sldSz cx="${595 * 12700}" cy="${842 * 12700}"/>`);
+  });
+
+  it('rechnet Textbreiten aus festen Tabellen und stellt die Laufweite danach ein', () => {
+    // Arial: „Hallo“ = 722 + 556 + 222 + 222 + 556 Tausendstel.
+    expect(textBreite('Hallo', 'sans', 10)).toBeCloseTo(22.78, 2);
+    expect(textBreite('Hallo', 'serif', 10)).toBeCloseTo(22.22, 2);
+    expect(textBreite('Hallo', 'mono', 10)).toBeCloseTo(30, 5);
+    expect(textBreite('Hallo', 'sans', 10, true)).toBeGreaterThan(textBreite('Hallo', 'sans', 10));
+    expect(textBreite('Wäsche', 'sans', 10)).toBeCloseTo(textBreite('Wasche', 'sans', 10), 5);
+    // Das Original lief schmal (15 pt für „Hallo“): die Ersatzschrift wird enger gestellt.
+    const zeile = {
+      text: 'Hallo',
+      x: 0,
+      oben: 0,
+      breite: 15,
+      groesse: 10,
+      schrift: 'sans' as const,
+      teile: [{ text: 'Hallo', x: 0, breite: 15, laeufe: [{ text: 'Hallo' }] }],
+    };
+    weitenSetzen([zeile]);
+    expect(zeile.teile[0]).toMatchObject({ weite: 64 });
+    // Gesperrte Überschrift, die in der Ersatzschrift zu breit liefe: Mindestabstand bleibt, die Schrift wird schmaler.
+    const gesperrt = {
+      text: 'NASSE',
+      x: 0,
+      oben: 0,
+      breite: 30,
+      groesse: 10,
+      schrift: 'sans' as const,
+      teile: [{ text: 'NASSE', x: 0, breite: 30, sperrung: 1.5, laeufe: [{ text: 'NASSE' }] }],
+    };
+    weitenSetzen([gesperrt]);
+    expect(gesperrt.teile[0].sperrung).toBeCloseTo(1, 5);
+    expect((gesperrt.teile[0] as { weite?: number }).weite).toBeLessThan(80);
+  });
+
+  it('setzt nach gesperrter Schrift auch bei kleiner Lücke ein Leerzeichen', () => {
+    const g = (text: string, x: number, breite: number): Stueck => ({
+      text,
+      x,
+      oben: 0,
+      breite,
+      groesse: 11.5,
+      schrift: 'sans',
+    });
+    const [zeile] = zeilenAus([g('R E Z E P T', 50, 40), g('6', 91.5, 5)]);
+    expect(zeile.text).toBe('REZEPT 6');
   });
 
   it('zeigt beim Lesen einen Ladebalken mit Seite und Anteil und räumt ihn weg', async () => {
