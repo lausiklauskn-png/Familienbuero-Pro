@@ -27,7 +27,9 @@ const CHARSET = '<meta charset="utf-8">';
 const SW_ZEILE =
   /<script>if\('serviceWorker' in navigator&&location\.protocol==='https:'\)navigator\.serviceWorker\.register\('sw\.js'\)\.catch\(function\(\)\{\}\);<\/script>/;
 const MYCEL_ZEILE = /<script defer src="assets\/sbkim-init\.js\?v=\d+"><\/script>/;
-// Nicht kopiert: Entwicklung, Repo-Papiere, eigener Service Worker, der Mycel-Knoten.
+// Nicht kopiert: Entwicklung, Repo-Papiere, eigener Service Worker, der Mycel-Knoten (Ordner `sbkim/`
+// ganz oben). Nur Ordner der obersten Ebene: `vendor/sbkim/` trägt das Embedding für die
+// Bedeutungssuche und muss mit -- eine Regel über alle Ebenen ließ es fehlen (17.11.2026).
 const AUSGENOMMEN_ORDNER = new Set(['.git', '.github', 'node_modules', 'tests', 'tools', 'docs', 'sbkim']);
 const AUSGENOMMEN_DATEI = new Set([
   'package.json',
@@ -86,7 +88,7 @@ function nachziehen(klon) {
     .filter(Boolean)
     .filter((rel) => {
       const t = rel.split('/');
-      return !t.slice(0, -1).some((o) => AUSGENOMMEN_ORDNER.has(o)) && !(t.length === 1 && AUSGENOMMEN_DATEI.has(t[0]));
+      return !(t.length > 1 && AUSGENOMMEN_ORDNER.has(t[0])) && !(t.length === 1 && AUSGENOMMEN_DATEI.has(t[0]));
     })
     .sort();
   const eintrag = { repo: 'lausiklauskn-png/Workflow-PDF', commit, ordner: ZIEL, dateien: {}, abweichungen: {} };
