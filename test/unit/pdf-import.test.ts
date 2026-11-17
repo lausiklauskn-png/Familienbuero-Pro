@@ -173,4 +173,19 @@ describe('PDF-Import', () => {
     expect(zeilen.map((z) => z.text)).toEqual(['Erste Zeile', 'Zweite Zeile']);
     expect(zeilen[0]).toMatchObject({ x: 50, oben: 100, breite: 150, groesse: 14 });
   });
+
+  it('zeigt beim Lesen einen Ladebalken mit Seite und Anteil und räumt ihn weg', async () => {
+    const { ladebalken } = await import('../../lib/pdf-import/index');
+    const balken = ladebalken();
+    expect(document.getElementById('fb-pdf-fortschritt')).toBeNull();
+    balken.zeigen(3, 10);
+    const kasten = document.getElementById('fb-pdf-fortschritt') as HTMLElement;
+    expect(kasten.textContent).toMatch(/3.*10/);
+    expect(kasten.getAttribute('aria-valuenow')).toBe('3');
+    expect((kasten.lastElementChild?.firstElementChild as HTMLElement).style.width).toBe('25%');
+    balken.zeigen(4, 10);
+    expect(document.querySelectorAll('#fb-pdf-fortschritt')).toHaveLength(1);
+    balken.weg();
+    expect(document.getElementById('fb-pdf-fortschritt')).toBeNull();
+  });
 });
