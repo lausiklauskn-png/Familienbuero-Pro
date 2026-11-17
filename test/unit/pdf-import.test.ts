@@ -187,5 +187,12 @@ describe('PDF-Import', () => {
     expect(document.querySelectorAll('#fb-pdf-fortschritt')).toHaveLength(1);
     balken.weg();
     expect(document.getElementById('fb-pdf-fortschritt')).toBeNull();
+    // Der Balken folgt der Farbwahl der App.
+    localStorage.setItem('fb-farbe', 'gruen');
+    const gruen = ladebalken();
+    gruen.zeigen(1, 2);
+    expect(document.getElementById('fb-pdf-fortschritt')?.dataset.farbe).toBe('gruen');
+    gruen.weg();
+    localStorage.removeItem('fb-farbe');
   });
 });

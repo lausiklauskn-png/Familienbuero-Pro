@@ -62,7 +62,7 @@ speichern – ohne Konto, ohne Server, alles auf dem Gerät. Schwester-App der F
   „Seitengetreu“ (wie oben) (`lib/onlyoffice/datei-menue.ts`). Bau: `lesen.ts` (PDF.js, Seitenbild, Bilder, OCR),
   `modell.ts` (Zeilen, Absätze, Bildkästen), `docx.ts`, eigener ZIP-Schreiber `zip.ts`. **Die Zeichnungen einer Seite hängen
   am ersten Textrahmen** – ein eigener Absatz am Seitenanfang wird vom Editor verdrängt und das Bild fehlt.
-  Beim Lesen steht ein Ladebalken „Seite n von m“ (`ladebalken`), damit ein langer Scan nicht wie ein Absturz aussieht.
+  Beim Lesen steht ein Ladebalken „Seite n von m“ in der gewählten Farbe der App (`ladebalken`), damit ein langer Scan nicht wie ein Absturz aussieht.
   Grenzen: Ersatzschriften (Arial/Times/Courier), kein Fett/Kursiv, schräg liegende oder beschnittene Bilder bleiben im
   Hintergrund, Text in Fotos bleibt Bild, die Texterkennung findet nicht jede Tabellenzelle; das Ergebnis ist eine
   Word-Datei (als PDF über „Herunterladen als“). Probe `test/unit/pdf-import.test.ts`.

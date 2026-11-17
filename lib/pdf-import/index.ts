@@ -1,5 +1,6 @@
 import { getLanguage, withLocale } from '@ranuts/shared/i18n';
 import { isNativeShell } from '../offline-worker-control';
+import { FARBEN, farbeFuer, gemerkteFarbe } from '../onlyoffice/farbpalette';
 import { stashPendingFile } from '../pending-open';
 import type { ImportArt } from './docx';
 
@@ -120,21 +121,28 @@ export const istPdf = (datei: File): boolean => datei.type === 'application/pdf'
 
 /** Der Ladebalken beim Lesen einer PDF: Seite für Seite, damit ein langer Scan nicht wie ein Absturz aussieht. */
 export function ladebalken(): { zeigen: (n: number, von: number) => void; weg: () => void } {
+  // In der gewählten Farbe der App (Farbknopf); „Kräftig“ nimmt das dunkle Blau der Familienakte.
+  const id = farbeFuer(gemerkteFarbe(window), 'documenteditor');
+  const f = FARBEN.find((farbe) => farbe.id === id);
+  const ton = f
+    ? { schrift: f.schrift, bahn: f.flaeche, von: f.tief, bis: f.akzent, rand: f.rand }
+    : { schrift: '#0b3154', bahn: '#dbe3ec', von: '#2f6ea8', bis: '#0b3154', rand: '#0b3154' };
   const kasten = document.createElement('div');
   kasten.id = 'fb-pdf-fortschritt';
+  kasten.dataset.farbe = f ? id : 'kraeftig';
   kasten.setAttribute('role', 'progressbar');
   kasten.setAttribute('aria-valuemin', '0');
   kasten.style.cssText =
     'position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2147483600;width:min(360px,calc(100vw - 48px));' +
-    'padding:18px 20px;border-radius:16px;background:#fff;color:#0b3154;box-shadow:0 24px 60px rgba(11,49,84,.3);' +
+    `padding:18px 20px;border-radius:16px;background:#fff;color:${ton.schrift};border:1px solid ${ton.rand};` +
+    'box-shadow:0 24px 60px rgba(11,49,84,.3);' +
     "font:15px 'Segoe UI Variable','Segoe UI',system-ui,Roboto,Arial,sans-serif";
   const text = document.createElement('div');
   text.style.cssText = 'margin-bottom:10px;font-weight:600';
   const bahn = document.createElement('div');
-  bahn.style.cssText = 'height:8px;border-radius:4px;background:#dcedf5;overflow:hidden';
+  bahn.style.cssText = `height:8px;border-radius:4px;background:${ton.bahn};overflow:hidden`;
   const balken = document.createElement('div');
-  balken.style.cssText =
-    'height:100%;width:0;border-radius:4px;background:linear-gradient(90deg,#5fa8d3,#1b6ca8);transition:width .25s ease';
+  balken.style.cssText = `height:100%;width:0;border-radius:4px;background:linear-gradient(90deg,${ton.von},${ton.bis});transition:width .25s ease`;
   bahn.appendChild(balken);
   kasten.append(text, bahn);
   return {
