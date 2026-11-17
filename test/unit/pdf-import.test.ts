@@ -182,7 +182,7 @@ describe('PDF-Import', () => {
     const kasten = document.getElementById('fb-pdf-fortschritt') as HTMLElement;
     expect(kasten.textContent).toMatch(/3.*10/);
     expect(kasten.getAttribute('aria-valuenow')).toBe('3');
-    expect((kasten.lastElementChild?.firstElementChild as HTMLElement).style.width).toBe('25%');
+    expect(kasten.querySelector<HTMLElement>('div > div > div')?.style.width).toBe('25%');
     balken.zeigen(4, 10);
     expect(document.querySelectorAll('#fb-pdf-fortschritt')).toHaveLength(1);
     balken.weg();
