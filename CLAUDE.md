@@ -16,7 +16,7 @@ speichern – ohne Konto, ohne Server, alles auf dem Gerät. Schwester-App der F
   Herkunftshinweis bleibt in der App (Startseite „Lizenzhinweis“, im Editor „Datei → Über“).
   Nicht als geschlossenes Produkt ausgeben. Keine Microsoft-Namen oder -Logos als Produktname.
 
-## Stand (17.11.2026, Fassung 0.1.2; ausgegeben ist 0.1.1)
+## Stand (17.11.2026, Fassung 0.1.3; ausgegeben ist 0.1.2 – APK und Windows 0.1.3 erst nach Klaus' Test der Web-App)
 
 - **PWA online:** https://lausiklauskn-png.github.io/Familienbuero-Pro/ (GitHub Pages, Quelle „GitHub Actions“,
   Ablauf `.github/workflows/pages.yml` bei jedem Stand auf `main`). Von Klaus am Tablet installiert und gestartet.
@@ -64,6 +64,8 @@ speichern – ohne Konto, ohne Server, alles auf dem Gerät. Schwester-App der F
 - **Reiterleiste am Handy (Klaus 17.11.):** Datei/Startseite/… lässt sich mit dem Finger schieben, die kleinen
   Pfeile entfallen bei Berührung; bis 760 px weichen Dateiname und Beschriftung „Bearbeitung“ aus der Zeile
   (`lib/onlyoffice/guards/chrome.ts`).
+- **PDF-Betrachter des Kerns (Klaus 17.11.):** „Hand“ und „Auswählen“ sind ausgeblendet (Leiste und Fußzeile,
+  nur `pdfeditor`; `lib/onlyoffice/guards/chrome.ts`).
 - **Unterordner:** die App läuft unter `/Familienbuero-Pro/`. Dafür relative Pfade in Startseite, Editor,
   Verlauf; `public/sw.js` (BASE/lokal), `public/sw-register.js`, `public/landing-prefetch.js`,
   `lib/offline-worker-control.ts` (`appRoot`), `lib/onlyoffice/guards/x2t-worker.ts`.
