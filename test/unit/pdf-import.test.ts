@@ -10,6 +10,7 @@ import {
   type Seite,
   type Stueck,
 } from '../../lib/pdf-import/modell';
+import { folieXml, pptxAus } from '../../lib/pdf-import/pptx';
 import { crc32, zipSpeichern } from '../../lib/pdf-import/zip';
 
 const stueck = (text: string, x: number, oben: number, groesse = 11, breite = text.length * 5): Stueck => ({
@@ -253,6 +254,48 @@ describe('PDF-Import', () => {
     expect(zeilenAus([s('Guten', 50), s('Tag', 93)])[0].teile?.[0].sperrung).toBeUndefined();
   });
 
+  it('baut aus jeder Seite eine Folie mit Hintergrund, Bildern und Textfeldern', () => {
+    const daten = new Uint8Array([0xff, 0xd8, 0xff, 0xd9]);
+    const seite: Seite = {
+      breite: 595,
+      hoehe: 842,
+      bild: daten,
+      bilder: [{ x: 50, oben: 100, breite: 200, hoehe: 80, daten }],
+      zeilen: [
+        {
+          text: 'Titel & mehr',
+          x: 40,
+          oben: 30,
+          breite: 100,
+          groesse: 12,
+          schrift: 'sans',
+          teile: [
+            {
+              text: 'Titel & mehr',
+              x: 40,
+              breite: 100,
+              laeufe: [{ text: 'Titel & mehr', fett: true, farbe: '8f252b' }],
+            },
+          ],
+        },
+      ],
+    };
+    const bilder: Uint8Array[] = [];
+    const xml = folieXml(seite, bilder);
+    expect(bilder).toHaveLength(2);
+    expect(xml).toContain('<p:bg><p:bgPr><a:blipFill');
+    expect(xml).toContain('<p:pic>');
+    expect(xml).toContain('txBox="1"');
+    expect(xml).toContain('sz="1200" b="1"');
+    expect(xml).toContain('<a:srgbClr val="8F252B"/>');
+    expect(xml).toContain('Titel &amp; mehr');
+    expect(xml).toContain(`<a:off x="${40 * 12700}"`);
+    const zip = new TextDecoder('latin1').decode(pptxAus([seite, { breite: 595, hoehe: 842, zeilen: [] }]));
+    for (const teil of ['ppt/presentation.xml', 'ppt/slides/slide2.xml', 'ppt/media/bild2.jpg', 'ppt/theme/theme1.xml'])
+      expect(zip).toContain(teil);
+    expect(zip).toContain(`<p:sldSz cx="${595 * 12700}" cy="${842 * 12700}"/>`);
+  });
+
   it('zeigt beim Lesen einen Ladebalken mit Seite und Anteil und räumt ihn weg', async () => {
     const { ladebalken } = await import('../../lib/pdf-import/index');
     const balken = ladebalken();
@@ -267,11 +310,16 @@ describe('PDF-Import', () => {
     balken.weg();
     expect(document.getElementById('fb-pdf-fortschritt')).toBeNull();
     // Der Balken folgt der Farbwahl der App.
-    localStorage.setItem('fb-farbe', 'gruen');
+    localStorage.setItem('fb-farbe-text', 'gruen');
     const gruen = ladebalken();
     gruen.zeigen(1, 2);
     expect(document.getElementById('fb-pdf-fortschritt')?.dataset.farbe).toBe('gruen');
     gruen.weg();
-    localStorage.removeItem('fb-farbe');
+    localStorage.removeItem('fb-farbe-text');
+    // Folien haben ihre eigene Farbe: ohne Wahl Koralle, wie die Kachel.
+    const folien = ladebalken('presentationeditor');
+    folien.zeigen(1, 2);
+    expect(document.getElementById('fb-pdf-fortschritt')?.dataset.farbe).toBe('koralle');
+    folien.weg();
   });
 });

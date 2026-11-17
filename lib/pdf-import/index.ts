@@ -120,9 +120,12 @@ const WORD = 'application/vnd.openxmlformats-officedocument.wordprocessingml.doc
 export const istPdf = (datei: File): boolean => datei.type === 'application/pdf' || /\.pdf$/i.test(datei.name);
 
 /** Der Ladebalken beim Lesen einer PDF: Seite für Seite, damit ein langer Scan nicht wie ein Absturz aussieht. */
-export function ladebalken(): { zeigen: (n: number, von: number) => void; weg: () => void } {
-  // In der gewählten Farbe der App (Farbknopf); „Kräftig“ nimmt das dunkle Blau der Familienakte.
-  const id = farbeFuer(gemerkteFarbe(window), 'documenteditor');
+export function ladebalken(programm: 'documenteditor' | 'presentationeditor' = 'documenteditor'): {
+  zeigen: (n: number, von: number) => void;
+  weg: () => void;
+} {
+  // In der gewählten Farbe des Programms (Farbknopf); „Kräftig“ nimmt das dunkle Blau der Familienakte.
+  const id = farbeFuer(gemerkteFarbe(window, programm), programm);
   const f = FARBEN.find((farbe) => farbe.id === id);
   const ton = f
     ? { schrift: f.schrift, bahn: f.flaeche, von: f.tief, bis: f.akzent, rand: f.rand }
@@ -191,14 +194,32 @@ export async function pdfBearbeitbar(datei: File): Promise<File> {
   }
 }
 
-/** „Datei → PDF importieren“. */
-export async function pdfImportieren(vorgabe?: File): Promise<void> {
+const FOLIEN = 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
+
+/** Die PDF auf dem Gerät lesen und als Folien bauen: jede Seite eine Folie. */
+async function alsFolien(datei: File): Promise<File | null> {
+  const [{ pdfLesen }, { pptxAus }] = await Promise.all([import('./lesen'), import('./pptx')]);
+  const balken = ladebalken('presentationeditor');
+  try {
+    const seiten = await pdfLesen(new Uint8Array(await datei.arrayBuffer()), {
+      bilder: true,
+      fortschritt: balken.zeigen,
+    });
+    if (!seiten.some((seite) => seite.zeilen.length > 0 || seite.bild)) return null;
+    return new File([pptxAus(seiten)], datei.name.replace(/\.pdf$/i, '') + '.pptx', { type: FOLIEN });
+  } finally {
+    balken.weg();
+  }
+}
+
+/** „Datei → PDF importieren“; im Folienprogramm (`ziel: 'folien'`) ohne Rückfrage als Folien. */
+export async function pdfImportieren(vorgabe?: File, ziel: 'text' | 'folien' = 'text'): Promise<void> {
   const datei = vorgabe ?? (await dateiWaehlen('.pdf,application/pdf'));
   if (!datei) return;
-  const art = await artWaehlen();
+  const art = ziel === 'folien' ? 'seitengetreu' : await artWaehlen();
   if (!art) return;
   try {
-    const docx = await alsWord(datei, art);
+    const docx = ziel === 'folien' ? await alsFolien(datei) : await alsWord(datei, art);
     if (!docx) {
       melden(
         deutsch()

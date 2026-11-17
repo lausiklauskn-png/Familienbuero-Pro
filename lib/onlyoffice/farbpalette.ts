@@ -12,6 +12,21 @@
  */
 
 export const FARBE_SPEICHER = 'fb-farbe';
+
+/**
+ * Jedes Programm merkt sich seine eigene Farbe (Klaus 17.11.2026): eine neue Farbe im
+ * Schreibprogramm ändert Tabellen und Folien nicht.
+ */
+export function farbeSpeicher(pfad: string): string {
+  const programm = pfad.includes('spreadsheeteditor')
+    ? 'tabelle'
+    : pfad.includes('presentationeditor')
+      ? 'folien'
+      : pfad.includes('pdfeditor')
+        ? 'pdf'
+        : 'text';
+  return `${FARBE_SPEICHER}-${programm}`;
+}
 export const FARBE_VORGABE = 'auto';
 
 interface Farbe {
@@ -134,9 +149,9 @@ function anwenden(win: Window, doc: Document, wahl: string): void {
   if (doc.body.classList.contains('theme-classic-light')) flaecheNeuEinlesen(win);
 }
 
-export function gemerkteFarbe(win: Window): string {
+export function gemerkteFarbe(win: Window, pfad = win.location.pathname): string {
   try {
-    const wert = win.localStorage.getItem(FARBE_SPEICHER);
+    const wert = win.localStorage.getItem(farbeSpeicher(pfad));
     if (wert && IDS.includes(wert)) return wert;
   } catch {
     // Speicher gesperrt: Vorgabe.
@@ -249,7 +264,7 @@ function knopfEinsetzen(win: Window, doc: Document): void {
     b.addEventListener('click', () => {
       anwenden(win, doc, e.id);
       try {
-        win.localStorage.setItem(FARBE_SPEICHER, e.id);
+        win.localStorage.setItem(farbeSpeicher(win.location.pathname), e.id);
       } catch {
         // Ohne Speicher gilt die Wahl bis zum Schließen.
       }
