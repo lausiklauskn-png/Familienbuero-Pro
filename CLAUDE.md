@@ -79,6 +79,11 @@ speichern – ohne Konto, ohne Server, alles auf dem Gerät. Schwester-App der F
   Fett/Kursiv und Sperrung. Für Tabellen nicht gebaut.
 - **KI-Assistent, Schlüssel (Klaus 17.11.):** unter dem Feld „API-Schlüssel“ steht „API-Schlüssel holen ›“ zur Schlüsselseite des
   gewählten Dienstes (`KEY_PAGES` in `lib/agent-plugin/ui/settings-view.ts`; beim lokalen Dienst kein Link).
+- **Ladeanzeige (Klaus 17.11., langsamer Rechner):** solange die Editorseite lädt, dreht sich das Zeichen der App – als
+  Startzeichen `#fb-start` schon in `editor.html` (Stil und Wegräumen dort in der Seite, weil der Programmcode zu spät
+  kommen kann; es weicht der Ladeanzeige, dem Editor-Rahmen oder der Startfläche) und in der Ladeanzeige `lib/loading.ts`
+  statt des Punktekreises. Keine Prozentzahl: für das Laden der App gibt es keinen ehrlichen Gesamtwert (bei PDFs zählt der
+  Ladebalken die Seiten). Probe `test/unit/lade-zeichen.test.ts`.
 - **Reiterleiste am Handy (Klaus 17.11.):** Datei/Startseite/… lässt sich mit dem Finger schieben, die kleinen
   Pfeile entfallen bei Berührung; bis 760 px weichen Dateiname und Beschriftung „Bearbeitung“ aus der Zeile
   (`lib/onlyoffice/guards/chrome.ts`).

@@ -67,9 +67,66 @@
       name="twitter:image:alt"
       content="Online Document Editor: Word, Excel, PowerPoint and PDF; local editing, open source and no signup."
     />
+    <!-- Familienbüro Pro (Klaus 17.11.2026): solange die Seite lädt, dreht sich das Zeichen der App --
+         auf einem langsamen Rechner sieht man so, dass sie arbeitet. Steht hier und nicht im
+         Programmcode, damit es schon vor dessen Ankunft zu sehen ist. -->
+    <style>
+      #fb-start {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: grid;
+        place-items: center;
+        pointer-events: none;
+        background: #f3f7fb;
+      }
+      .fb-dreht {
+        width: 84px;
+        height: 84px;
+        border-radius: var(--ran-radius-lg);
+        animation: fb-dreht 1.5s linear infinite;
+      }
+      @keyframes fb-dreht {
+        to {
+          transform: rotateY(360deg);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .fb-dreht {
+          animation: fb-pocht 1.6s ease-in-out infinite alternate;
+        }
+        @keyframes fb-pocht {
+          to {
+            opacity: 0.45;
+          }
+        }
+      }
+    </style>
   </head>
 
   <body>
+    <div id="fb-start" aria-hidden="true"><img class="fb-dreht" src="/icons/document-192.png" alt="" /></div>
+    <!-- Das Startzeichen weicht, sobald die App etwas Eigenes zeigt: ihre Ladeanzeige, den Editor oder
+         die Startfläche. Hier in der Seite, weil der Programmcode dafür zu spät kommen kann. -->
+    <script>
+      (function () {
+        var start = document.getElementById('fb-start');
+        if (!start) return;
+        var beobachter = new MutationObserver(function () {
+          if (!start.isConnected) return beobachter.disconnect();
+          if (document.querySelector('.loading-mask, iframe[name="frameEditor"], body.landing-active')) {
+            start.remove();
+            beobachter.disconnect();
+          }
+        });
+        beobachter.observe(document.documentElement, {
+          childList: true,
+          subtree: true,
+          attributes: true,
+          attributeFilter: ['class'],
+        });
+      })();
+    </script>
     <div id="app">
       <div id="iframe"></div>
     </div>
