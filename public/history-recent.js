@@ -82,7 +82,14 @@
       // on /ja/, /pt/ and the rest, and the editor resolves ?locale= first.
       var pageLang = document.documentElement.lang || 'en';
       var localeParam = '&locale=' + encodeURIComponent(pageLang || 'en');
-      resume.href = './editor?saved=' + encodeURIComponent(doc.id) + localeParam + suffix;
+      resume.href =
+        (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()
+          ? './editor.html'
+          : './editor') +
+        '?saved=' +
+        encodeURIComponent(doc.id) +
+        localeParam +
+        suffix;
       resume.textContent = (slot.getAttribute('data-recent-label') || 'Continue') + ' ' + doc.title;
 
       slot.appendChild(resume);

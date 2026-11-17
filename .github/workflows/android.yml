@@ -1,0 +1,101 @@
+name: Familienbüro Pro für Android
+
+# Baut die Android-APK (Capacitor) aus dem fertigen Web-Bau. Das Android-Projekt
+# entsteht bei jedem Lauf frisch aus handy/ (capacitor.config.json, package.json).
+# Start von Hand (Actions -> dieser Ablauf -> "Run workflow"). Mit
+# veroeffentlichen = ja entsteht zusätzlich ein Release android-v<Fassung>-test.
+#
+# ACHTUNG: Die APK trägt vorerst einen Wegwerf-Schlüssel dieses Laufs. Eine
+# spätere APK lässt sich darüber nicht installieren -- vorher deinstallieren.
+# Eine dauerhafte Signatur braucht einen hinterlegten Schlüssel.
+
+on:
+  # Auf den Arbeitszweigen der Android-Fassung baut jeder Stand von selbst,
+  # damit sich der Ablauf ohne Zusammenführen erproben lässt.
+  push:
+    branches: ["claude/android-**"]
+    paths:
+      - "handy/**"
+      - ".github/workflows/android.yml"
+  workflow_dispatch:
+    inputs:
+      veroeffentlichen:
+        description: "Als Release veröffentlichen (ja/nein)"
+        required: false
+        default: "nein"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    name: APK bauen
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up the toolchain
+        uses: ./.github/actions/setup
+
+      - name: Web-App bauen
+        run: pnpm run build
+
+      # Die Hülle sendet keine eigenen Kopfzeilen: Umwandler entpacken, Seiten der Vorlage entfernen.
+      - name: Für die Hülle vorbereiten
+        run: node bin/einfacher-server.mjs dist
+
+      - name: Java 21 einrichten
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Android-Projekt erzeugen
+        working-directory: handy
+        run: |
+          set -euo pipefail
+          npm install
+          npx cap add android
+          npx capacitor-assets generate --android --iconBackgroundColor '#1f5fa6' --iconBackgroundColorDark '#0b3154'
+          npx cap sync android
+
+      - name: APK bauen
+        working-directory: handy/android
+        run: ./gradlew --no-daemon assembleDebug
+
+      - name: Fassung und Datei feststellen
+        id: datei
+        run: |
+          set -euo pipefail
+          fassung=$(node -p "require('./handy/package.json').version")
+          ziel="Familienbuero-Pro-android-v$fassung-test.apk"
+          cp handy/android/app/build/outputs/apk/debug/app-debug.apk "$ziel"
+          echo "fassung=$fassung" >> "$GITHUB_OUTPUT"
+          echo "datei=$ziel" >> "$GITHUB_OUTPUT"
+          ls -la "$ziel"
+          sha256sum "$ziel"
+
+      - name: APK als Lauf-Anhang
+        uses: actions/upload-artifact@v7
+        with:
+          name: familienbuero-android
+          path: ${{ steps.datei.outputs.datei }}
+          retention-days: 14
+
+      - name: Als Release veröffentlichen
+        if: inputs.veroeffentlichen == 'ja'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag="android-v${{ steps.datei.outputs.fassung }}-test"
+          gh release create "$tag" "${{ steps.datei.outputs.datei }}" \
+            --target "$GITHUB_SHA" --prerelease \
+            --title "Familienbüro Pro für Android ${{ steps.datei.outputs.fassung }} (Test)" \
+            --notes "Test-APK mit Wegwerf-Schlüssel dieses Laufs. Vor einer späteren APK deinstallieren."

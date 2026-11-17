@@ -25,6 +25,9 @@
       // sonst Englisch. Die Verweise unten bekommen die passende Sprache.
       (function () {
         var sprache = /^de\b/i.test(navigator.language || '') ? 'de' : 'en';
+        var inAndroidHuelle = Boolean(
+          window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform(),
+        );
         try {
           localStorage.setItem('document-lang', sprache);
         } catch (e) {}
@@ -32,7 +35,12 @@
           document.querySelectorAll('[data-sprache]').forEach(function (el) {
             ['href', 'data-open-local'].forEach(function (name) {
               var wert = el.getAttribute(name);
-              if (wert) el.setAttribute(name, wert.replace('locale=de', 'locale=' + sprache));
+              if (!wert) return;
+              wert = wert.replace('locale=de', 'locale=' + sprache);
+              // In der Android-Hülle gibt es keine Adressen ohne „.html“.
+              if (inAndroidHuelle)
+                wert = wert.replace('./editor?', './editor.html?').replace('./history?', './history.html?');
+              el.setAttribute(name, wert);
             });
             if (el.hasAttribute('data-recent-locale')) el.setAttribute('data-recent-locale', sprache);
           });

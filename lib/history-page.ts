@@ -11,6 +11,7 @@
  * no sitemap entry, noindex. Its language follows the app's i18n the way the
  * editor's does.
  */
+import { isNativeShell } from './offline-worker-control';
 import 'ranui/button';
 import 'ranui/input';
 import 'ranui/icon';
@@ -117,7 +118,8 @@ function pickAndOpenFile(): void {
     input.remove();
     if (!file) return;
     void stashPendingFile(file).then((stashed) => {
-      window.location.href = stashed ? './editor?open=local' : './editor';
+      const editorPage = isNativeShell() ? './editor.html' : './editor';
+      window.location.href = stashed ? `${editorPage}?open=local` : editorPage;
     });
   });
   document.body.appendChild(input);
