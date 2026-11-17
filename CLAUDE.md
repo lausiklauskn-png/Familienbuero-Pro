@@ -41,6 +41,14 @@ speichern – ohne Konto, ohne Server, alles auf dem Gerät. Schwester-App der F
   `lib/onlyoffice/farbpalette.ts`, Probe `test/unit/farbpalette.test.ts`.
 - **Geschenkbox:** nach Box und Buch eine dritte Seite mit Browser, Android, Windows und den Voraussetzungen
   der Offline-KI; Bilder als WebP (Datei 0,7 MB, damit die Vorschau im Chat sie lädt).
+- **Workflow PDF als eigener Teil (Klaus 17.11.: „Als eigener Teil daneben“):** Kachel „PDF“ auf der Startseite
+  öffnet `workflow-pdf/index.html` – byte-gleicher Klon des Repos `lausiklauskn-png/Workflow-PDF` unter
+  `familienbuero/workflow-pdf/` (Pins `familienbuero/workflow-pdf.herkunft.json`, eigene Lizenz im Ordner;
+  getrenntes Programm, nicht mit dem Büro-Kern verwoben). **Nie von Hand ändern, nur
+  `node bin/wfpdf-nachziehen.mjs`** (`--pruefen` vergleicht; läuft im Bau). Eigen: Brücke und Farben in
+  `familienbuero/wfpdf/` (eigene Datenbank `FamilienbueroWFPDF1`, kein eigener Worker, „⟳“ ohne fremde
+  Vorräte, Pfeil zurück zur Startseite). Grund: das eingebaute PDF-Programm des Büro-Kerns speichert eine
+  bearbeitete PDF als Word-Datei. „Datei öffnen“ mit einer PDF führt weiter in das eingebaute Programm.
 - **Unterordner:** die App läuft unter `/Familienbuero-Pro/`. Dafür relative Pfade in Startseite, Editor,
   Verlauf; `public/sw.js` (BASE/lokal), `public/sw-register.js`, `public/landing-prefetch.js`,
   `lib/offline-worker-control.ts` (`appRoot`), `lib/onlyoffice/guards/x2t-worker.ts`.
