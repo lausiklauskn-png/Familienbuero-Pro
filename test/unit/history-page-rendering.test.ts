@@ -120,3 +120,16 @@ it('keeps the toolbar and settings interactive after filter and clear-search cha
   expect(document.getElementById('history-filter-unsaved')!.getAttribute('aria-pressed')).toBe('false');
   expect(window.location.search).toBe('');
 });
+
+// Familienbüro Pro: die App liegt in einem Unterordner des Servers. Eine
+// Adresse ab der Wurzel ("/editor?…") führte von „Zuletzt bearbeitet“ auf eine
+// Fehlerseite; der Verweis muss am Ordner der Seite hängen. Dazu ein sichtbarer
+// Knopf, denn dass der Name der Verweis ist, sieht man ihm nicht an.
+it('opens a saved document relative to the page folder, by name and by button', async () => {
+  await load();
+  const name = document.querySelector<HTMLAnchorElement>('.history-row-title.history-open');
+  expect(name?.getAttribute('href')).toBe('./editor?saved=Initial.docx');
+  const knopf = document.querySelector('.history-row-actions .history-open-button');
+  expect(knopf).not.toBeNull();
+  expect(knopf?.textContent).toContain('historyOpen');
+});
