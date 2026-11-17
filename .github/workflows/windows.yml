@@ -1,0 +1,118 @@
+name: Familienbüro Pro für Windows
+
+# Baut das Windows-Installationsprogramm (Tauri, NSIS) aus dem fertigen Web-Bau.
+# Start von Hand (Actions -> dieser Ablauf -> "Run workflow"). Mit
+# veroeffentlichen = ja entsteht zusätzlich ein Release windows-v<Fassung> mit
+# dem Installationsprogramm; ohne bleibt es beim Lauf-Anhang.
+# Das Programm ist nicht code-signiert: Windows SmartScreen fragt beim ersten Start nach.
+
+on:
+  # Auf den Arbeitszweigen der Windows-Fassung baut jeder Stand von selbst,
+  # damit sich der Ablauf ohne Zusammenführen erproben lässt.
+  push:
+    branches: ["claude/windows-**"]
+    paths:
+      - "windows/**"
+      - ".github/workflows/windows.yml"
+  workflow_dispatch:
+    inputs:
+      veroeffentlichen:
+        description: "Als Release veröffentlichen (ja/nein)"
+        required: false
+        default: "nein"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: windows-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web:
+    name: Web-App bauen
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Set up the toolchain
+        uses: ./.github/actions/setup
+
+      - name: Bauen
+        run: pnpm run build
+
+      # Die Hülle sendet keine eigenen Kopfzeilen: Umwandler entpacken, Seiten der Vorlage entfernen.
+      - name: Für die Hülle vorbereiten
+        run: node bin/einfacher-server.mjs dist
+
+      - name: Web-Bau weitergeben
+        uses: actions/upload-artifact@v7
+        with:
+          name: web-bau
+          path: dist
+          retention-days: 1
+          include-hidden-files: true
+
+  windows:
+    name: Windows-Paket bauen
+    needs: web
+    runs-on: windows-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Web-Bau holen
+        uses: actions/download-artifact@v8
+        with:
+          name: web-bau
+          path: dist
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "lts/*"
+
+      - name: Tauri-Werkzeug installieren
+        working-directory: windows
+        run: npm install
+
+      - name: Installationsprogramm bauen
+        working-directory: windows
+        run: npx tauri build
+
+      - name: Fassung und Datei feststellen
+        id: datei
+        shell: bash
+        run: |
+          set -euo pipefail
+          fassung=$(node -p "require('./windows/src-tauri/tauri.conf.json').version")
+          quelle=$(ls windows/src-tauri/target/release/bundle/nsis/*-setup.exe | head -1)
+          ziel="Familienbuero-Pro-Windows-$fassung-x64-setup.exe"
+          cp "$quelle" "$ziel"
+          echo "fassung=$fassung" >> "$GITHUB_OUTPUT"
+          echo "datei=$ziel" >> "$GITHUB_OUTPUT"
+          ls -la "$ziel"
+          sha256sum "$ziel"
+
+      - name: Installationsprogramm als Lauf-Anhang
+        uses: actions/upload-artifact@v7
+        with:
+          name: familienbuero-windows
+          path: ${{ steps.datei.outputs.datei }}
+          retention-days: 14
+
+      - name: Als Release veröffentlichen
+        if: inputs.veroeffentlichen == 'ja'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag="windows-v${{ steps.datei.outputs.fassung }}"
+          gh release create "$tag" "${{ steps.datei.outputs.datei }}" \
+            --target "$GITHUB_SHA" \
+            --title "Familienbüro Pro für Windows ${{ steps.datei.outputs.fassung }}" \
+            --notes "Installationsprogramm für Windows (64 Bit). Nicht code-signiert: Windows SmartScreen fragt beim ersten Start nach."

@@ -15,6 +15,16 @@ export function appRoot(href = location.href): string {
   return '/';
 }
 
+/**
+ * Familienbüro Pro: läuft die App in einer Hülle (Windows über Tauri, Android
+ * über Capacitor), liegt alles im Paket. Dort gibt es keinen Offline-Worker, und
+ * es darf auch nicht auf einen gewartet werden.
+ */
+export function isNativeShell(scope: object = globalThis): boolean {
+  const s = scope as { __TAURI_INTERNALS__?: unknown; Capacitor?: { isNativePlatform?: () => boolean } };
+  return Boolean(s.__TAURI_INTERNALS__) || s.Capacitor?.isNativePlatform?.() === true;
+}
+
 /** The page chooses the response policy; a Service Worker itself is not isolated. */
 export function appWorkerScriptURL(href = location.href, isolated = globalThis.crossOriginIsolated === true): string {
   const url = new URL(appRoot(href) + 'sw.js', href);
@@ -69,7 +79,7 @@ export async function waitForAppWorkerControl(
   scriptURL?: string,
   timeoutMs = 15000,
 ): Promise<boolean> {
-  if (!worker) return false;
+  if (!worker || isNativeShell()) return false;
   const wantedURL = scriptURL ?? (await getAppWorkerScriptURL());
   if (worker.controller?.scriptURL === wantedURL) return true;
   return new Promise((resolve) => {

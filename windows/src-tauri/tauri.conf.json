@@ -1,0 +1,46 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Familienbüro Pro",
+  "mainBinaryName": "familienbuero",
+  "version": "0.1.0",
+  "identifier": "de.familyprojekt.familienbuero",
+  "build": {
+    "frontendDist": "../../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Familienbüro Pro",
+        "url": "index.html",
+        "width": 1280,
+        "height": 900,
+        "maximized": true,
+        "minWidth": 360,
+        "minHeight": 480,
+        "useHttpsScheme": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "publisher": "Familienbüro",
+    "category": "Productivity",
+    "shortDescription": "Word-, Excel- und PowerPoint-Dateien öffnen und bearbeiten",
+    "icon": ["icons/icon.ico", "icons/icon.png"],
+    "windows": {
+      "webviewInstallMode": {
+        "type": "downloadBootstrapper",
+        "silent": true
+      },
+      "nsis": {
+        "installMode": "currentUser",
+        "languages": ["German", "English"]
+      }
+    }
+  }
+}
