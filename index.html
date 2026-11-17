@@ -52,13 +52,8 @@
     <style>
       :root {
         --navy: #0b3154;
-        --ink: #15283a;
-        --muted: #627181;
-        --line: #d8e2ea;
-        --canvas: #f2f7fa;
-        --paper: #fff;
-        --teal: #087f7a;
-        --blue: #1f5fa6;
+        --ink: #14273a;
+        --muted: #5d6c7c;
       }
       * {
         box-sizing: border-box;
@@ -66,241 +61,301 @@
       html,
       body {
         margin: 0;
-        background: var(--canvas);
+        min-height: 100%;
         color: var(--ink);
-        font-family: 'Segoe UI', system-ui, Roboto, Arial, sans-serif;
+        font-family: 'Segoe UI Variable', 'Segoe UI', system-ui, Roboto, Arial, sans-serif;
+      }
+      body {
+        min-height: 100svh;
+        background:
+          radial-gradient(60vw 46vh at 8% -6%, rgba(63, 143, 208, 0.3), transparent 62%),
+          radial-gradient(52vw 44vh at 100% 4%, rgba(8, 127, 122, 0.2), transparent 60%),
+          radial-gradient(70vw 50vh at 50% 112%, rgba(11, 49, 84, 0.16), transparent 62%), #f3f6fb;
+        background-attachment: fixed;
       }
       a {
         color: inherit;
         text-decoration: none;
       }
       .kopf {
-        background: var(--navy);
-        color: #fff;
-        padding: 12px 16px;
+        position: sticky;
+        top: 0;
+        z-index: 5;
         display: flex;
         align-items: center;
         gap: 12px;
+        padding: 10px 20px;
+        background: rgba(255, 255, 255, 0.62);
+        -webkit-backdrop-filter: blur(18px) saturate(1.4);
+        backdrop-filter: blur(18px) saturate(1.4);
+        border-bottom: 1px solid rgba(11, 49, 84, 0.08);
+      }
+      .kopf img {
+        width: 36px;
+        height: 36px;
+        border-radius: 9px;
+        box-shadow: 0 2px 8px rgba(11, 49, 84, 0.18);
       }
       .kopf-name {
         flex: 1 1 auto;
         min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .kopf b {
+        font-size: 16px;
+        font-weight: 600;
+        letter-spacing: 0.1px;
+        color: var(--navy);
+        white-space: nowrap;
       }
       .fassung {
-        display: inline-block;
-        margin-right: 8px;
-        padding: 1px 6px;
-        border: 1px solid rgba(255, 255, 255, 0.45);
-        border-radius: 6px;
-        background: none;
-        color: inherit;
+        padding: 2px 8px;
+        border: 1px solid rgba(11, 49, 84, 0.18);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.7);
+        color: var(--muted);
         font: inherit;
         font-size: 11px;
+        font-variant-numeric: tabular-nums;
         cursor: pointer;
-        vertical-align: 2px;
+        white-space: nowrap;
       }
       .fassung.neu {
-        background: #ffd24a;
-        border-color: #ffd24a;
+        background: linear-gradient(180deg, #ffe07a, #ffc83d);
+        border-color: #e9b120;
         color: #3a2a00;
         font-weight: 700;
       }
       .kopf-knopf {
         flex: 0 0 auto;
-        min-height: 38px;
-        padding: 0 14px;
-        border: 1px solid rgba(255, 255, 255, 0.6);
-        border-radius: 9px;
-        background: #fff;
-        color: var(--navy);
+        min-height: 36px;
+        padding: 0 16px;
+        border: 0;
+        border-radius: 999px;
+        background: linear-gradient(180deg, #2f7fd0, #1a5aa8);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.35),
+          0 4px 14px rgba(26, 90, 168, 0.35);
+        color: #fff;
         font: inherit;
         font-size: 14px;
-        font-weight: 700;
+        font-weight: 600;
         cursor: pointer;
       }
-      .kopf img {
-        width: 44px;
-        height: 44px;
-        border-radius: 11px;
-      }
-      .kopf b {
-        font-size: 18px;
-        letter-spacing: 0.2px;
-      }
-      .kopf span {
-        font-size: 13px;
-        opacity: 0.8;
-      }
       main {
-        max-width: 1040px;
+        max-width: 1120px;
         margin: 0 auto;
-        padding: 22px 16px 40px;
+        padding: clamp(28px, 7vh, 72px) 20px 28px;
       }
       h1 {
-        font-size: clamp(24px, 4.2vw, 34px);
-        margin: 6px 0 6px;
+        margin: 0 0 10px;
+        font-size: clamp(30px, 5vw, 46px);
+        font-weight: 600;
+        letter-spacing: -0.02em;
         color: var(--navy);
       }
       .unter {
-        margin: 0 0 20px;
+        margin: 0 0 clamp(22px, 4vh, 38px);
+        max-width: 62ch;
         color: var(--muted);
-        font-size: 16px;
+        font-size: clamp(15px, 1.6vw, 17px);
         line-height: 1.5;
-        max-width: 60ch;
       }
       .kacheln {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 12px;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 16px;
       }
       .kachel {
-        background: var(--paper);
-        border: 1px solid var(--line);
-        border-radius: 14px;
-        padding: 16px 14px;
-        min-height: 132px;
+        --a: #2f7fd0;
+        --b: #185abd;
+        position: relative;
+        isolation: isolate;
+        overflow: hidden;
         display: flex;
         flex-direction: column;
-        gap: 6px;
-        cursor: pointer;
-        font: inherit;
+        justify-content: space-between;
+        gap: 26px;
+        min-height: 176px;
+        padding: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        border-radius: 20px;
+        background: linear-gradient(160deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.66));
+        -webkit-backdrop-filter: blur(14px);
+        backdrop-filter: blur(14px);
+        box-shadow:
+          0 1px 0 rgba(255, 255, 255, 0.9) inset,
+          0 10px 30px rgba(11, 49, 84, 0.1),
+          0 2px 6px rgba(11, 49, 84, 0.06);
         color: inherit;
+        font: inherit;
         text-align: left;
-        box-shadow: 0 1px 2px rgba(11, 49, 84, 0.06);
+        cursor: pointer;
         transition:
-          transform 0.12s,
-          box-shadow 0.12s;
+          transform 0.18s ease,
+          box-shadow 0.18s ease;
+      }
+      /* Licht: ein farbiger Schein in der Ecke und ein Glanz, der beim Zeigen wandert */
+      .kachel::before {
+        content: '';
+        position: absolute;
+        z-index: -1;
+        right: -46px;
+        bottom: -56px;
+        width: 210px;
+        height: 210px;
+        border-radius: 50%;
+        background: radial-gradient(closest-side, var(--a), transparent 72%);
+        opacity: 0.3;
+        transition: opacity 0.18s ease;
+      }
+      .kachel::after {
+        content: '';
+        position: absolute;
+        z-index: -1;
+        inset: 0;
+        background: linear-gradient(115deg, transparent 38%, rgba(255, 255, 255, 0.75) 50%, transparent 62%);
+        transform: translateX(-120%);
+        transition: transform 0.6s ease;
       }
       .kachel:hover,
       .kachel:focus-visible {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(11, 49, 84, 0.14);
+        transform: translateY(-4px);
         outline: none;
+        box-shadow:
+          0 1px 0 rgba(255, 255, 255, 0.9) inset,
+          0 22px 46px rgba(11, 49, 84, 0.18),
+          0 0 0 1px color-mix(in srgb, var(--a) 45%, transparent);
       }
-      .kachel i {
-        width: 44px;
-        height: 44px;
-        border-radius: 11px;
+      .kachel:hover::before,
+      .kachel:focus-visible::before {
+        opacity: 0.5;
+      }
+      .kachel:hover::after,
+      .kachel:focus-visible::after {
+        transform: translateX(120%);
+      }
+      .zeichen {
+        width: 58px;
+        height: 58px;
         display: grid;
         place-items: center;
-        color: #fff;
-        font-style: normal;
-        font-weight: 700;
-        font-size: 22px;
+        border-radius: 16px;
+        background: linear-gradient(150deg, var(--a), var(--b));
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.45),
+          inset 0 -8px 14px rgba(0, 0, 0, 0.12),
+          0 10px 20px color-mix(in srgb, var(--b) 38%, transparent);
+      }
+      .zeichen svg {
+        width: 30px;
+        height: 30px;
+        fill: none;
+        stroke: #fff;
+        stroke-width: 1.9;
+        stroke-linecap: round;
+        stroke-linejoin: round;
       }
       .kachel b {
-        font-size: 18px;
-      }
-      .kachel small {
-        color: var(--muted);
-        font-size: 13px;
-        line-height: 1.35;
-      }
-      .s i {
-        background: linear-gradient(160deg, #3f8fd0, #1f5fa6);
-      }
-      .t i {
-        background: linear-gradient(160deg, #2aa66a, #167249);
-      }
-      .f i {
-        background: linear-gradient(160deg, #e08a3c, #b85c12);
-      }
-      .o i {
-        background: linear-gradient(160deg, #17a79f, #087f7a);
+        font-size: 19px;
+        font-weight: 600;
+        letter-spacing: -0.005em;
       }
       .o {
-        border-color: var(--teal);
+        --a: #1aa59d;
+        --b: #0b5a66;
+      }
+      .s {
+        --a: #3f8fe0;
+        --b: #185abd;
+      }
+      .t {
+        --a: #2bb673;
+        --b: #107c41;
+      }
+      .f {
+        --a: #f08a4b;
+        --b: #c43e1c;
       }
       .zuletzt {
-        margin: 16px 0 0;
         display: flex;
         flex-wrap: wrap;
-        gap: 8px 14px;
         align-items: center;
+        gap: 8px 18px;
+        margin-top: 20px;
         font-size: 14px;
-        color: var(--muted);
       }
-      .zuletzt a {
-        color: var(--blue);
-        font-weight: 600;
-      }
-      h2 {
-        font-size: 18px;
-        color: var(--navy);
-        margin: 30px 0 10px;
-      }
-      .punkte {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
+      .zuletzt a,
+      .zuletzt button {
         padding: 0;
-        margin: 0;
-        list-style: none;
-      }
-      .punkte li {
-        background: var(--paper);
-        border: 1px solid var(--line);
-        border-left: 4px solid var(--teal);
-        border-radius: 10px;
-        padding: 10px 12px;
-        font-size: 14px;
-        line-height: 1.45;
-      }
-      .punkte.bald li {
-        border-left-color: #b9c6d3;
-        color: var(--muted);
-      }
-      .punkte b {
-        color: var(--ink);
+        border: 0;
+        background: none;
+        color: #1a5aa8;
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
       }
       footer {
-        max-width: 1040px;
+        max-width: 1120px;
         margin: 0 auto;
-        padding: 0 16px 24px;
-        color: #8795a3;
+        padding: 0 20px 22px;
+        color: #8a97a5;
         font-size: 10px;
         line-height: 1.5;
       }
       footer summary {
-        cursor: pointer;
         width: max-content;
+        cursor: pointer;
       }
       footer p {
-        margin: 6px 0 0;
         max-width: 80ch;
+        margin: 6px 0 0;
       }
       footer a {
         text-decoration: underline;
       }
-      @media (max-width: 560px) {
-        .kopf {
-          flex-wrap: wrap;
-          gap: 8px;
-        }
-        .kopf img {
-          width: 36px;
-          height: 36px;
-        }
-        .kopf b {
-          font-size: 16px;
-          white-space: nowrap;
-        }
-        .kopf-name br,
-        .kopf-name span {
-          display: none;
-        }
-        .kopf-knopf {
-          min-height: 36px;
-          padding: 0 10px;
-          font-size: 13px;
+      @media (max-width: 900px) {
+        .kacheln {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
         }
       }
-      @media (max-width: 820px) {
-        .kacheln {
-          grid-template-columns: repeat(2, 1fr);
+      @media (max-width: 560px) {
+        .kopf {
+          padding: 8px 14px;
+          gap: 8px;
         }
-        .punkte {
-          grid-template-columns: 1fr;
+        .kopf-knopf {
+          padding: 0 12px;
+          font-size: 13px;
+        }
+        main {
+          padding-left: 14px;
+          padding-right: 14px;
+        }
+        .kacheln {
+          gap: 12px;
+        }
+        .kachel {
+          min-height: 142px;
+          padding: 16px;
+          gap: 18px;
+        }
+        .zeichen {
+          width: 50px;
+          height: 50px;
+          border-radius: 14px;
+        }
+        .kachel b {
+          font-size: 17px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .kachel,
+        .kachel::after,
+        .kachel::before {
+          transition: none;
         }
       }
     </style>
@@ -313,9 +368,9 @@
       <img src="./icons/document-192.png" alt="" />
       <div class="kopf-name">
         <button type="button" class="fassung" id="fassung" title="Fassung – antippen prüft, ob es eine neuere gibt">
-          0.1.0</button
-        ><b>Familienbüro Pro</b><br />
-        <span>Schreiben · Tabellen · Folien</span>
+          0.1.0
+        </button>
+        <b>Familienbüro Pro</b>
       </div>
       <button
         type="button"
@@ -324,15 +379,15 @@
         hidden
         title="Familienbüro Pro als App auf diesem Gerät installieren"
       >
-        ⤓ Installieren
+        Installieren
       </button>
     </div>
     <main>
       <section id="landing-hero">
         <h1>Dein Büro für zu Hause.</h1>
         <p class="unter">
-          Word-, Excel- und PowerPoint-Dateien öffnen, bearbeiten und speichern – ohne Konto und ohne Abo. Alles bleibt
-          auf deinem Gerät.
+          Word-, Excel- und PowerPoint-Dateien öffnen und bearbeiten. Ohne Konto, ohne Abo, alles bleibt auf deinem
+          Gerät.
         </p>
         <div class="kacheln">
           <button
@@ -342,17 +397,39 @@
             type="button"
             data-open-local="./editor?locale=de&open=local"
           >
-            <i>↥</i><b>Datei öffnen</b><small>Word, Excel, PowerPoint, PDF – auch alte .doc und .xls</small>
+            <span class="zeichen"
+              ><svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 8.5V6a2 2 0 0 1 2-2h4l2 2.5h8a2 2 0 0 1 2 2V10" />
+                <path d="M3.5 11h17l-1.6 7.2a2 2 0 0 1-2 1.6H7.1a2 2 0 0 1-2-1.6L3.5 11Z" /></svg
+            ></span>
+            <b>Datei öffnen</b>
           </button>
-          <a class="kachel s" id="hero-new-docx" data-sprache href="./editor?locale=de&new=docx" data-prefetch="docx"
-            ><i>S</i><b>Schreiben</b><small>Neues Dokument: Brief, Text, Bericht</small></a
-          >
-          <a class="kachel t" id="hero-new-xlsx" data-sprache href="./editor?locale=de&new=xlsx" data-prefetch="xlsx"
-            ><i>T</i><b>Tabellen</b><small>Neue Tabelle: rechnen, sortieren, Diagramme</small></a
-          >
-          <a class="kachel f" id="hero-new-pptx" data-sprache href="./editor?locale=de&new=pptx" data-prefetch="pptx"
-            ><i>F</i><b>Folien</b><small>Neue Präsentation</small></a
-          >
+          <a class="kachel s" id="hero-new-docx" data-sprache href="./editor?locale=de&new=docx" data-prefetch="docx">
+            <span class="zeichen"
+              ><svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5Z" />
+                <path d="M14 3v5h5" />
+                <path d="M8.5 13h7M8.5 16.5h5" /></svg
+            ></span>
+            <b>Schreiben</b>
+          </a>
+          <a class="kachel t" id="hero-new-xlsx" data-sprache href="./editor?locale=de&new=xlsx" data-prefetch="xlsx">
+            <span class="zeichen"
+              ><svg viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="3.5" y="4.5" width="17" height="15" rx="2" />
+                <path d="M3.5 9.5h17M3.5 14.5h17M9.5 4.5v15M15 4.5v15" /></svg
+            ></span>
+            <b>Tabellen</b>
+          </a>
+          <a class="kachel f" id="hero-new-pptx" data-sprache href="./editor?locale=de&new=pptx" data-prefetch="pptx">
+            <span class="zeichen"
+              ><svg viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="3" y="4.5" width="18" height="12" rx="2" />
+                <path d="M12 16.5V20M8.5 20h7" />
+                <path d="M8 12.5v-2M12 12.5V8.5M16 12.5v-3" /></svg
+            ></span>
+            <b>Folien</b>
+          </a>
         </div>
         <div class="zuletzt recent">
           <span
@@ -363,23 +440,8 @@
             hidden
           ></span>
           <a class="recent-all" data-sprache href="./history?locale=de">Zuletzt bearbeitet ›</a>
-          <span>Arbeitskopien bleiben 7 Tage in diesem Browser. Wichtiges immer als Datei speichern.</span>
         </div>
       </section>
-      <h2>Was hier anders ist</h2>
-      <ul class="punkte">
-        <li><b>Kein Abo, kein Konto.</b> Öffnen und loslegen.</li>
-        <li><b>Nichts wird hochgeladen.</b> Die Dateien bleiben auf dem Gerät.</li>
-        <li><b>Läuft ohne Internet,</b> sobald die App einmal geladen ist.</li>
-        <li><b>Als App installierbar</b> – auf Handy, Tablet und PC.</li>
-      </ul>
-      <h2>Kommt als Nächstes</h2>
-      <ul class="punkte bald">
-        <li><b>Lesen</b> mit Markieren und Notizen</li>
-        <li><b>Eigene Schriften</b> importieren</li>
-        <li><b>Post</b> über Private Brain Pro</li>
-        <li><b>Verbindung zur Familienakte</b> – Unterlagen direkt bearbeiten</li>
-      </ul>
     </main>
     <footer>
       <details>

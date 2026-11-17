@@ -12,16 +12,29 @@ import { clearDocumentSession } from './history/autosave';
 import { rememberActiveSource, clearActiveSource } from './active-document-source';
 
 import { LEER_DOCX_BASE64 } from './leer-docx';
+import { LEER_PPTX_BASE64 } from './leer-pptx';
 
-/** Die eingebaute deutsche Vorlage als Datei. */
-const leeresTextdokument = (fileName: string): File | undefined => {
+/** Die eingebauten deutschen Vorlagen: Textdokument und Folien. */
+const VORLAGEN: Record<string, { daten: string; art: string }> = {
+  '.docx': {
+    daten: LEER_DOCX_BASE64,
+    art: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  },
+  '.pptx': {
+    daten: LEER_PPTX_BASE64,
+    art: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  },
+};
+
+/** Die eingebaute deutsche Vorlage als Datei; undefined, wenn es für die Art keine gibt. */
+const deutscheVorlage = (ext: string, fileName: string): File | undefined => {
+  const vorlage = VORLAGEN[ext];
+  if (!vorlage) return undefined;
   try {
-    const roh = atob(LEER_DOCX_BASE64);
+    const roh = atob(vorlage.daten);
     const bytes = new Uint8Array(roh.length);
     for (let i = 0; i < roh.length; i++) bytes[i] = roh.charCodeAt(i);
-    return new File([bytes], fileName, {
-      type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    });
+    return new File([bytes], fileName, { type: vorlage.art });
   } catch (fehler) {
     console.warn('Vorlage nicht lesbar, leeres Dokument des Kerns wird benutzt:', fehler);
     return undefined;
@@ -66,7 +79,7 @@ export const onCreateNew = async (ext: string, options?: { docId?: string }): Pr
       hideControlPanelFn();
     }
     // Familienbüro Pro: auf Deutsch eingestellten Geräten heißen neue Dateien
-    // deutsch und das Textdokument startet aus der deutschen Vorlage; in jeder
+    // deutsch, Textdokument und Folien starten aus der deutschen Vorlage; in jeder
     // anderen Sprache gilt das Verhalten der Vorlage unverändert.
     const deutsch = getLanguage() === 'de';
     const fileName =
@@ -77,7 +90,7 @@ export const onCreateNew = async (ext: string, options?: { docId?: string }): Pr
     // Vorlage (A4, Calibri 11, Sprache Deutsch) statt aus dem Leerdokument des
     // Kerns (Letter, ostasiatische Schrift, Englisch). Die Vorlage steckt im
     // Programm selbst, es wird nichts nachgeladen.
-    const vorlage = deutsch && ext === '.docx' ? leeresTextdokument(fileName) : undefined;
+    const vorlage = deutsch ? deutscheVorlage(ext, fileName) : undefined;
     await handleDocumentOperation(
       vorlage
         ? { file: vorlage, fileName, isNew: false, signal: opening.signal, isCurrent: opening.isCurrent }

@@ -9,11 +9,17 @@
  * Dateien scheiterte. Dieses Skript ersetzt den Inhalt der Datei durch den
  * entpackten Umwandler; der Name bleibt, damit alle Verweise gleich bleiben.
  *
+ * Außerdem nimmt es die Werbe- und Hilfeseiten der Vorlage (alle Sprachen, auch
+ * die chinesischen) aus dem veröffentlichten Stand: Familienbüro Pro ist nur
+ * die App – Startseite, Editor, Verlauf, Geschenkbox. Die Quellen und ihre
+ * Prüfungen bleiben im Repo unverändert, nur veröffentlicht wird davon nichts.
+ *
  * Aufruf: node bin/einfacher-server.mjs [dist]
  */
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { brotliDecompressSync } from 'node:zlib';
+import { generate } from './build-pages.mjs';
 
 const dist = resolve(process.argv[2] || 'dist');
 const wasm = resolve(dist, 'sdkjs/common/wasm/x2t/x2t.wasm.br');
@@ -36,3 +42,66 @@ if (istWasm(roh)) {
 }
 // GitHub Pages soll nichts über Jekyll filtern (Ordner mit Unterstrich usw.).
 writeFileSync(resolve(dist, '.nojekyll'), '');
+
+// --- Seiten der Vorlage aus dem veröffentlichten Stand nehmen -----------------
+
+// Alles, was der Seiten-Erzeuger schreibt, außer unserer Startseite.
+const weg = new Set(
+  generate({ outDir: null })
+    .map((seite) => seite.rel)
+    .filter((rel) => rel !== 'index.html'),
+);
+// Dazu, was nur zur Website der Vorlage gehört und in keiner App-Seite gebraucht wird.
+for (const rest of [
+  'zh-CN',
+  'ja',
+  'ko',
+  'de',
+  'es',
+  'pt',
+  'help',
+  'open',
+  'convert',
+  'social',
+  'embed-demo.html',
+  '404.html',
+  'sitemap.xml',
+  'llms.txt',
+  'llms-full.txt',
+  '_headers',
+  '_redirects',
+]) {
+  weg.add(rest);
+}
+let entfernt = 0;
+for (const rel of weg) {
+  const ziel = resolve(dist, rel);
+  if (!ziel.startsWith(dist) || !existsSync(ziel)) continue;
+  rmSync(ziel, { recursive: true, force: true });
+  entfernt++;
+}
+// Die App ist privat: Suchmaschinen sollen sie nicht aufnehmen.
+writeFileSync(resolve(dist, 'robots.txt'), 'User-agent: *\nDisallow: /\n');
+console.log(`Seiten der Vorlage entfernt: ${entfernt} Einträge`);
+
+// --- Gegenprobe: der Offline-Worker darf nichts Entferntes vorhalten wollen ----
+// Sein Vorrat wird beim Installieren vollständig geladen; eine fehlende Datei
+// ließe die Installation scheitern und die App liefe nicht mehr ohne Netz.
+const worker = readFileSync(resolve(dist, 'sw.js'), 'utf8');
+const vorrat = new Set();
+const fest = /const ASSETS_TO_CACHE = \[([\s\S]*?)\];/.exec(worker);
+if (fest) for (const treffer of fest[1].matchAll(/^\s*'(\.\/[^']*)',?\s*$/gm)) vorrat.add(treffer[1]);
+const gebaut = /const APP_ASSETS_TO_CACHE = (\[[^\n]*?\]); \/\/ BUILD_APP_ASSETS/.exec(worker);
+if (gebaut) for (const pfad of JSON.parse(gebaut[1])) vorrat.add(pfad);
+const fehlt = [];
+for (const pfad of vorrat) {
+  const rel = pfad.replace(/^\.?\//, '').split('?')[0];
+  if (rel === '' || rel === 'editor') continue; // '/', '/editor' sind Seitenadressen
+  const ziel = resolve(dist, rel);
+  if (!existsSync(ziel) || !statSync(ziel).isFile()) fehlt.push(pfad);
+}
+if (fehlt.length) {
+  console.error(`Der Offline-Worker hält Dateien vor, die es nicht mehr gibt:\n  ${fehlt.join('\n  ')}`);
+  process.exit(1);
+}
+console.log(`Offline-Vorrat geprüft: ${vorrat.size} Einträge vorhanden.`);
