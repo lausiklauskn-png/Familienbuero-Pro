@@ -20,6 +20,8 @@ let landingHero: HTMLElement | null = null;
 const getLandingHero = (): HTMLElement | null => (landingHero ??= document.getElementById('landing-hero'));
 
 export const showLanding = (): void => {
+  // Familienbüro Pro: das drehende Startzeichen der Seite (editor.html) weicht der Startfläche.
+  document.getElementById('fb-start')?.remove();
   const hero = getLandingHero();
   document.body.classList.toggle('landing-active', !!hero);
   if (hero) hero.style.display = '';
