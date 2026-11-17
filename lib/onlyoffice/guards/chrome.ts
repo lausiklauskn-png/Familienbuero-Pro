@@ -32,6 +32,13 @@ export function injectLocalChromeCss(doc: Document): void {
       // Nur diese eine Ansicht: die übrigen (weiß, dunkel) haben eigene, darauf
       // abgestimmte Schriftfarben.
       '.theme-classic-light { --toolbar-header-document: #0b3154 !important; --toolbar-header-spreadsheet: #087f7a !important; --toolbar-header-presentation: #8f252b !important; --toolbar-header-pdf: #8f252b !important; }',
+      // Familienbüro Pro (Klaus 17.11.2026): im eingebauten PDF-Betrachter entfallen „Hand“ und
+      // „Auswählen“ (Leiste und Fußzeile). Bearbeitet wird eine PDF in Workflow PDF.
+      ...(/pdfeditor/.test(doc.location?.pathname ?? '')
+        ? [
+            '#slot-btn-hand-tool, #slot-btn-select-tool, #status-btn-hand-tool, #status-btn-select-tool { display: none !important; }',
+          ]
+        : []),
       // Familienbüro Pro (Klaus 17.11.2026, am Handy): die Reiterleiste (Datei, Startseite, ...) mit dem
       // Finger schieben statt über die kleinen Pfeile. Am schmalen Bildschirm weichen dafür der
       // Dateiname und die Beschriftung des Bearbeiten-Knopfs aus der Reiterzeile.

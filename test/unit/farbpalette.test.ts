@@ -21,3 +21,15 @@ describe('Farbwahl im Editor', () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 });
+
+describe('PDF-Betrachter des Kerns', () => {
+  it('blendet Hand und Auswählen nur im pdfeditor aus', async () => {
+    const { readFileSync } = await import('node:fs');
+    const quelle = readFileSync('lib/onlyoffice/guards/chrome.ts', 'utf8');
+    const stelle = quelle.indexOf('/pdfeditor/.test(');
+    expect(stelle).toBeGreaterThan(0);
+    const regel = quelle.slice(stelle, stelle + 400);
+    for (const id of ['slot-btn-hand-tool', 'slot-btn-select-tool', 'status-btn-hand-tool', 'status-btn-select-tool'])
+      expect(regel).toContain(`#${id}`);
+  });
+});

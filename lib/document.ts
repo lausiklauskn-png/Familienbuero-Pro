@@ -132,6 +132,11 @@ export const openLocalFile = async (
     if (hideControlPanelFn) {
       hideControlPanelFn();
     }
+    // Familienbüro Pro: eine PDF geht bearbeitbar im Schreibprogramm auf (lib/pdf-import).
+    if (/\.pdf$/i.test(file.name) || file.type === 'application/pdf') {
+      const { pdfBearbeitbar } = await import('./pdf-import');
+      file = await pdfBearbeitbar(file);
+    }
     opening.assertCurrent();
     await handleDocumentOperation({
       file,

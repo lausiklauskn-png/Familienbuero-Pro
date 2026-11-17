@@ -1,7 +1,6 @@
 import { getLanguage, withLocale } from '@ranuts/shared/i18n';
 import { isNativeShell } from '../offline-worker-control';
 import { stashPendingFile } from '../pending-open';
-import { pdfAnWorkflowPdf } from '../pdf-weiter';
 import type { ImportArt } from './docx';
 
 /**
@@ -42,7 +41,6 @@ function dateiWaehlen(annehmen: string): Promise<File | null> {
 export async function dateiOeffnen(): Promise<void> {
   const datei = await dateiWaehlen('.docx,.xlsx,.pptx,.doc,.xls,.ppt,.csv,.pdf');
   if (!datei) return;
-  if (await pdfAnWorkflowPdf(datei)) return;
   if (await stashPendingFile(datei)) zumEditor();
 }
 
@@ -116,6 +114,36 @@ function melden(text: string): void {
   window.setTimeout(() => hinweis.remove(), 7000);
 }
 
+const WORD = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+
+export const istPdf = (datei: File): boolean => datei.type === 'application/pdf' || /\.pdf$/i.test(datei.name);
+
+/** Die PDF auf dem Gerät lesen und als Word-Datei bauen; `null`, wenn nichts Lesbares darin steht. */
+async function alsWord(datei: File, art: ImportArt): Promise<File | null> {
+  const [{ pdfLesen }, { docxAus }] = await Promise.all([import('./lesen'), import('./docx')]);
+  const seiten = await pdfLesen(new Uint8Array(await datei.arrayBuffer()), {
+    bilder: art === 'seitengetreu',
+    ocr: true,
+  });
+  if (!seiten.some((seite) => seite.zeilen.length > 0 || seite.bild)) return null;
+  return new File([docxAus(seiten, art)], datei.name.replace(/\.pdf$/i, '') + '.docx', { type: WORD });
+}
+
+/**
+ * Eine über „Datei öffnen“ gewählte PDF (Klaus 17.11.2026): sie geht im Schreibprogramm auf --
+ * das Bild jeder Seite im Hintergrund, der Text als bearbeitbare Zeilen an seiner Stelle, bei
+ * Scans über die Texterkennung. Nur bei deutscher Oberfläche; sonst und bei einem Fehler bleibt
+ * es bei der Datei selbst.
+ */
+export async function pdfBearbeitbar(datei: File): Promise<File> {
+  if (!deutsch() || !istPdf(datei)) return datei;
+  try {
+    return (await alsWord(datei, 'seitengetreu')) ?? datei;
+  } catch {
+    return datei;
+  }
+}
+
 /** „Datei → PDF importieren“. */
 export async function pdfImportieren(vorgabe?: File): Promise<void> {
   const datei = vorgabe ?? (await dateiWaehlen('.pdf,application/pdf'));
@@ -123,20 +151,12 @@ export async function pdfImportieren(vorgabe?: File): Promise<void> {
   const art = await artWaehlen();
   if (!art) return;
   try {
-    const [{ pdfLesen }, { docxAus }] = await Promise.all([import('./lesen'), import('./docx')]);
-    const seiten = await pdfLesen(new Uint8Array(await datei.arrayBuffer()));
-    if (!seiten.some((seite) => seite.zeilen.length > 0)) {
-      melden(
-        deutsch()
-          ? 'Diese PDF enthält keinen Text (Scan). Texterkennung: Kachel „PDF“.'
-          : 'This PDF has no text layer (scan).',
-      );
+    const docx = await alsWord(datei, art);
+    if (!docx) {
+      melden(deutsch() ? 'In dieser PDF ließ sich kein Text erkennen.' : 'No text was found in this PDF.');
       return;
     }
-    const name = datei.name.replace(/\.pdf$/i, '') + '.docx';
-    const docx = new File([docxAus(seiten, art)], name, {
-      type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    });
+    // Schon fertig gebaut: der Editor soll die Word-Datei öffnen, nicht noch einmal umwandeln.
     if (await stashPendingFile(docx)) zumEditor();
   } catch {
     melden(deutsch() ? 'Diese PDF ließ sich nicht importieren.' : 'This PDF could not be imported.');

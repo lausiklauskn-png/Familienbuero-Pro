@@ -166,41 +166,10 @@
       });
     });
 
-    // Familienbüro Pro: eine PDF geht an Workflow PDF statt an das eingebaute
-    // PDF-Programm (dort lässt sich das Bearbeitete nicht als PDF speichern).
-    // Übergabe wie in lib/pdf-weiter.ts; nur bei deutscher Oberfläche.
-    function pdfWeiter(file) {
-      var deutsch = /^de\b/i.test(navigator.language || '');
-      var pdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
-      if (!deutsch || !pdf || typeof caches === 'undefined') return Promise.resolve(false);
-      return caches
-        .open('fb-wfpdf-geteilt')
-        .then(function (vorrat) {
-          var ziel = new URL('./workflow-pdf/geteilt/' + Date.now() + '-0', location.href);
-          return vorrat.put(
-            new Request(ziel.href),
-            new Response(file, {
-              headers: { 'Content-Type': 'application/pdf', 'X-Name': encodeURIComponent(file.name) },
-            }),
-          );
-        })
-        .then(
-          function () {
-            location.href = './workflow-pdf/index.html?geteilt=1';
-            return true;
-          },
-          function () {
-            return false;
-          },
-        );
-    }
-
     input.addEventListener('change', function () {
       var file = input.files && input.files[0];
       if (!file) return;
-      pdfWeiter(file).then(function (weiter) {
-        if (!weiter) oeffnen(file);
-      });
+      oeffnen(file);
     });
 
     function oeffnen(file) {
