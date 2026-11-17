@@ -139,6 +139,46 @@ function notifySaved(name: string): void {
   );
 }
 
+/** Der Ordner unter „Dokumente“, in den die Android-Hülle speichert. */
+export const ANDROID_SAVE_FOLDER = 'Familienbuero';
+
+type CapacitorFilesystem = {
+  writeFile(options: { path: string; data: string; directory: string; recursive: boolean }): Promise<{ uri?: string }>;
+};
+
+/**
+ * Familienbüro Pro: in der Android-Hülle (Capacitor) über das Dateisystem-Modul
+ * nach Dokumente/Familienbuero schreiben. Gibt den angezeigten Ort zurück, oder
+ * null, wenn die App nicht in dieser Hülle läuft oder das Schreiben scheitert --
+ * dann greift der gewöhnliche Weg.
+ */
+export async function saveInAndroidShell(file: File, scope: object = globalThis): Promise<string | null> {
+  const capacitor = (
+    scope as {
+      Capacitor?: { isNativePlatform?: () => boolean; Plugins?: { Filesystem?: CapacitorFilesystem } };
+    }
+  ).Capacitor;
+  const filesystem = capacitor?.Plugins?.Filesystem;
+  if (!capacitor?.isNativePlatform?.() || !filesystem) return null;
+  try {
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    let binary = '';
+    for (let i = 0; i < bytes.length; i += 0x8000) {
+      binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+    }
+    const name = file.name.replace(/[\\/:*?"<>|]+/g, '_') || 'Dokument';
+    await filesystem.writeFile({
+      path: `${ANDROID_SAVE_FOLDER}/${name}`,
+      data: btoa(binary),
+      directory: 'DOCUMENTS',
+      recursive: true,
+    });
+    return `Dokumente/${ANDROID_SAVE_FOLDER}/${name}`;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Write the document to the file it is linked to, asking for one if it has
  * none yet.
@@ -156,6 +196,14 @@ export async function saveToDiskFile(
   description: string,
   options: { rememberTarget?: boolean } = {},
 ): Promise<SaveOutcome> {
+  // Familienbüro Pro: in der Android-Hülle gibt es weder ein „Speichern unter“-
+  // Fenster noch einen Download. Dort schreibt die App in Dokumente/Familienbuero.
+  const nativ = await saveInAndroidShell(file);
+  if (nativ) {
+    notifySaved(nativ);
+    return 'written';
+  }
+
   const picker = (globalThis as { showSaveFilePicker?: SavePicker }).showSaveFilePicker;
   if (typeof picker !== 'function') return 'unavailable';
 

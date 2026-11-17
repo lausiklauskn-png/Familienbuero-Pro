@@ -1,0 +1,9 @@
+{
+  "appId": "de.familyprojekt.familienbuero",
+  "appName": "Familienbüro Pro",
+  "webDir": "../dist",
+  "loggingBehavior": "none",
+  "server": { "androidScheme": "https" },
+  "android": { "allowMixedContent": false, "webContentsDebuggingEnabled": false },
+  "plugins": { "CapacitorHttp": { "enabled": false } }
+}

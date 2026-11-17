@@ -34,6 +34,15 @@
 (function (global) {
   'use strict';
 
+  // Familienbüro Pro: in einer Hülle (Windows über Tauri, Android über Capacitor)
+  // liegt alles im Paket; dort wird kein Offline-Worker angemeldet.
+  if (
+    global.__TAURI_INTERNALS__ ||
+    (global.Capacitor && global.Capacitor.isNativePlatform && global.Capacitor.isNativePlatform())
+  ) {
+    return;
+  }
+
   /** Absolute, not './sw.js': from /zh-CN/ a relative URL would scope the worker to /zh-CN/. */
   // Familienbüro Pro: nicht '/sw.js' – die App darf in einem Unterordner liegen.
   // Dieses Skript liegt immer neben sw.js, also wird die Adresse von ihm abgeleitet.
