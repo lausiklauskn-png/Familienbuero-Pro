@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { docxAus, dokumentXml } from '../../lib/pdf-import/docx';
-import { absaetzeAus, grundgroesse, zeilenAus, type Seite, type Stueck } from '../../lib/pdf-import/modell';
+import {
+  absaetzeAus,
+  bildKaesten,
+  grundgroesse,
+  zeilenAus,
+  zeilenAusOcr,
+  type Seite,
+  type Stueck,
+} from '../../lib/pdf-import/modell';
 import { crc32, zipSpeichern } from '../../lib/pdf-import/zip';
 
 const stueck = (text: string, x: number, oben: number, groesse = 11, breite = text.length * 5): Stueck => ({
@@ -81,5 +89,88 @@ describe('PDF-Import', () => {
     const ende = zip.length - 22;
     expect(new DataView(zip.buffer).getUint16(ende + 10, true)).toBe(5);
     expect(zipSpeichern({ 'a.txt': 'ä' }).length).toBe(30 + 5 + 2 + 46 + 5 + 22);
+  });
+
+  it('legt das Seitenbild hinter den Text und Bilder als eigene Objekte darüber', () => {
+    const daten = new Uint8Array([0xff, 0xd8, 0xff, 0xd9]);
+    const seiten: Seite[] = [
+      {
+        breite: 595,
+        hoehe: 842,
+        zeilen: [{ text: 'Titel', x: 40, oben: 30, breite: 100, groesse: 12, schrift: 'sans' }],
+        bild: daten,
+        bilder: [{ x: 50, oben: 100, breite: 200, hoehe: 80, daten }],
+      },
+      { breite: 595, hoehe: 842, zeilen: [], bild: daten },
+      { breite: 595, hoehe: 842, zeilen: [] },
+    ];
+    const xml = dokumentXml(seiten, 'seitengetreu');
+    expect(xml).toContain('r:embed="rIdSeite1"');
+    expect(xml).toContain('r:embed="rIdBild1x1"');
+    expect(xml).toContain('r:embed="rIdSeite2"');
+    expect(xml).not.toContain('rIdSeite3');
+    expect(xml.match(/behindDoc="1"/g)).toHaveLength(2);
+    expect(xml.match(/behindDoc="0"/g)).toHaveLength(1);
+    expect(xml).toContain(`cx="${595 * 12700}"`);
+    expect(xml).toContain(`<wp:posOffset>${50 * 12700}</wp:posOffset>`);
+    // Die Zeichnungen der ersten Seite hängen am ersten Textrahmen, nicht an einem eigenen Absatz davor.
+    expect(xml.indexOf('<w:framePr')).toBeLessThan(xml.indexOf('<w:drawing>'));
+    const zip = new TextDecoder('latin1').decode(docxAus(seiten, 'seitengetreu'));
+    expect(zip).toContain('word/media/Seite1.jpg');
+    expect(zip).toContain('Target="media/Bild1x1.jpg"');
+    expect(zip).toContain('Extension="jpg"');
+    // Fließtext bleibt ohne Bilder.
+    expect(new TextDecoder('latin1').decode(docxAus(seiten, 'fliesstext'))).not.toContain('word/media/');
+  });
+
+  it('macht Spalten einer Zeile zu eigenen Rahmen', () => {
+    const z = (text: string, x: number): Stueck => ({ text, x, oben: 100, breite: 40, groesse: 12, schrift: 'sans' });
+    const [zeile] = zeilenAus([z('Essig', 50), z('50 ml', 120)]);
+    expect(zeile.text).toBe('Essig\t50 ml');
+    expect(zeile.teile).toEqual([
+      { text: 'Essig', x: 50, breite: 40 },
+      { text: '50 ml', x: 120, breite: 40 },
+    ]);
+    const xml = dokumentXml([{ breite: 595, hoehe: 842, zeilen: [zeile] }], 'seitengetreu');
+    expect(xml.match(/<w:framePr/g)).toHaveLength(2);
+    expect(xml).toContain('w:x="2400"');
+  });
+
+  it('findet die Kästen gerade liegender Bilder aus den Zeichenbefehlen', () => {
+    const ops = { save: 10, restore: 11, transform: 12, formAnfang: 74, formEnde: 75, bilder: [85] };
+    const kaesten = bildKaesten(
+      [10, 12, 85, 11, 10, 12, 85, 11, 12, 85, 12, 85],
+      [
+        null,
+        [200, 0, 0, 100, 50, 600],
+        ['bild1'],
+        null,
+        null,
+        [10, 0, 0, 10, 0, 0],
+        ['klein'],
+        null,
+        [0.7, 0.7, -0.7, 0.7, 0, 0],
+        ['schraeg'],
+        null,
+        null,
+      ],
+      ops,
+      { breite: 595, hoehe: 842 },
+    );
+    // Nur das erste: das zweite ist zu klein, das dritte liegt schräg.
+    expect(kaesten).toEqual([{ x: 50, oben: 142, breite: 200, hoehe: 100 }]);
+  });
+
+  it('rechnet erkannte Zeilen der Texterkennung von Bildpunkten in Punkt um', () => {
+    const zeilen = zeilenAusOcr(
+      [
+        { text: ' Zweite  Zeile\n', x0: 100, y0: 300, x1: 500, y1: 330 },
+        { text: 'Erste Zeile', x0: 100, y0: 200, x1: 400, y1: 228 },
+        { text: '  ', x0: 0, y0: 0, x1: 10, y1: 10 },
+      ],
+      2,
+    );
+    expect(zeilen.map((z) => z.text)).toEqual(['Erste Zeile', 'Zweite Zeile']);
+    expect(zeilen[0]).toMatchObject({ x: 50, oben: 100, breite: 150, groesse: 14 });
   });
 });

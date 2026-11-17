@@ -12,7 +12,6 @@
  * editor's does.
  */
 import { isNativeShell } from './offline-worker-control';
-import { pdfAnWorkflowPdf } from './pdf-weiter';
 import 'ranui/button';
 import 'ranui/input';
 import 'ranui/icon';
@@ -118,13 +117,9 @@ function pickAndOpenFile(): void {
     const file = input.files?.[0];
     input.remove();
     if (!file) return;
-    // Familienbüro Pro: eine PDF geht an Workflow PDF (lib/pdf-weiter.ts).
-    void pdfAnWorkflowPdf(file).then((weiter) => {
-      if (weiter) return;
-      return stashPendingFile(file).then((stashed) => {
-        const editorPage = isNativeShell() ? './editor.html' : './editor';
-        window.location.href = stashed ? `${editorPage}?open=local` : editorPage;
-      });
+    void stashPendingFile(file).then((stashed) => {
+      const editorPage = isNativeShell() ? './editor.html' : './editor';
+      window.location.href = stashed ? `${editorPage}?open=local` : editorPage;
     });
   });
   document.body.appendChild(input);

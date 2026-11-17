@@ -51,16 +51,20 @@ speichern – ohne Konto, ohne Server, alles auf dem Gerät. Schwester-App der F
   `familienbuero/wfpdf/` (eigene Datenbank `FamilienbueroWFPDF1`, kein eigener Worker, „⟳“ ohne fremde
   Vorräte, Pfeil zurück zur Startseite). Farben: Wasserfarben-Rot mit Pinselverlauf und dieselbe Farbwahl wie im
   Editor (Knopf im Kopf, gemeinsamer Schlüssel `fb-farbe`; ohne Wahl rot, „Kräftig“ = eigene Farben von Workflow PDF). Grund: das eingebaute PDF-Programm des Büro-Kerns speichert eine
-  bearbeitete PDF als Word-Datei. Eine über „Datei öffnen“ gewählte PDF geht bei deutscher Oberfläche an Workflow PDF (`lib/pdf-weiter.ts`,
-  `public/open-local.js`; Übergabe über den Vorrat `fb-wfpdf-geteilt` und `?geteilt=1`, Probe `test/unit/pdf-weiter.test.ts`).
-- **PDF-Import ins Schreibprogramm (Klaus 17.11.):** Menü „Datei“ des Editors hat zwei eigene Einträge:
-  „Öffnen“ und (nur im Schreibprogramm) „PDF importieren“ (`lib/onlyoffice/datei-menue.ts`). Der Import fragt
-  „Als Fließtext“ oder „Seitengetreu“ und baut auf dem Gerät eine Word-Datei (`lib/pdf-import/`: `lesen.ts`
-  mit PDF.js, `modell.ts` Zeilen/Absätze, `docx.ts`, eigener ZIP-Schreiber `zip.ts`), die über die Übergabe
-  von „Datei öffnen“ aufgeht. Fließtext: Überschriften nach Größe, Absätze, Tabulatoren. Seitengetreu: jede
-  Zeile als Textrahmen an ihrer Stelle. Grenzen: keine Bilder, Linien, Tabellenrahmen, kein Fett/Kursiv im
-  seitengetreuen Import; Scans ohne Textebene werden abgewiesen (Hinweis auf die Kachel „PDF“).
-  Probe `test/unit/pdf-import.test.ts`.
+  bearbeitete PDF als Word-Datei. Workflow PDF ist der Scanner und das Ausfüll-Werkzeug (Felder erkennen); den Text einer PDF bearbeitet man im Schreibprogramm.
+- **PDF im Schreibprogramm bearbeiten (Klaus 17.11.: „wie in Corel“):** eine über „Datei öffnen“ gewählte PDF geht bei
+  deutscher Oberfläche bearbeitbar im Schreibprogramm auf (`pdfBearbeitbar` in `lib/pdf-import/index.ts`, Anschluss in
+  `openLocalFile`, `lib/document.ts`): jede Textzeile als Textrahmen an ihrer Stelle (Spalten und Tabellenzellen als eigene
+  Rahmen), die Bilder der Seite als eigene, bewegliche Objekte, alles Übrige (Linien, Tabellenrahmen, Flächen) als
+  Seitenbild im Hintergrund, in dem Text und Bilder übermalt sind. Seiten ohne Textebene (Scans) liest die Texterkennung
+  aus dem Ordner von Workflow PDF (`workflow-pdf/vendor/tesseract`, Deutsch). Menü „Datei“ hat dazu „Öffnen“ und (nur im
+  Schreibprogramm) „PDF importieren“ mit der Wahl „Als Fließtext“ (Überschriften, Absätze, ohne Bilder) oder
+  „Seitengetreu“ (wie oben) (`lib/onlyoffice/datei-menue.ts`). Bau: `lesen.ts` (PDF.js, Seitenbild, Bilder, OCR),
+  `modell.ts` (Zeilen, Absätze, Bildkästen), `docx.ts`, eigener ZIP-Schreiber `zip.ts`. **Die Zeichnungen einer Seite hängen
+  am ersten Textrahmen** – ein eigener Absatz am Seitenanfang wird vom Editor verdrängt und das Bild fehlt.
+  Grenzen: Ersatzschriften (Arial/Times/Courier), kein Fett/Kursiv, schräg liegende oder beschnittene Bilder bleiben im
+  Hintergrund, Text in Fotos bleibt Bild, die Texterkennung findet nicht jede Tabellenzelle; das Ergebnis ist eine
+  Word-Datei (als PDF über „Herunterladen als“). Probe `test/unit/pdf-import.test.ts`.
 - **Reiterleiste am Handy (Klaus 17.11.):** Datei/Startseite/… lässt sich mit dem Finger schieben, die kleinen
   Pfeile entfallen bei Berührung; bis 760 px weichen Dateiname und Beschriftung „Bearbeitung“ aus der Zeile
   (`lib/onlyoffice/guards/chrome.ts`).
