@@ -1,10 +1,11 @@
-import { absaetzeAus, type Seite, type Stueck } from './modell';
+import { absaetzeAus, type Seite, type Stueck, type Teil } from './modell';
 import { zipSpeichern } from './zip';
 
 /**
  * Familienbüro Pro: aus den gelesenen PDF-Seiten eine Word-Datei bauen.
  *  - `fliesstext`: Überschriften und Absätze als normaler, frei bearbeitbarer Text.
- *  - `seitengetreu`: jede Zeile als Textrahmen an ihrer Stelle auf der Seite.
+ *  - `seitengetreu`: jede Zeile als Textrahmen an ihrer Stelle auf der Seite, mit Fett, Kursiv,
+ *    Schriftfarbe und der Laufweite des Originals.
  */
 export type ImportArt = 'fliesstext' | 'seitengetreu';
 
@@ -31,10 +32,27 @@ function laeufe(text: string, eigenschaften: string): string {
     .join('');
 }
 
-const lauf = (schrift: Stueck['schrift'], groesse: number, fett = false): string =>
+const lauf = (
+  schrift: Stueck['schrift'],
+  groesse: number,
+  fett = false,
+  kursiv = false,
+  farbe?: string,
+  weite?: number,
+): string =>
   `<w:rFonts w:ascii="${SCHRIFT[schrift]}" w:hAnsi="${SCHRIFT[schrift]}" w:cs="${SCHRIFT[schrift]}"/>` +
   (fett ? '<w:b/>' : '') +
+  (kursiv ? '<w:i/>' : '') +
+  (farbe && /^[0-9a-f]{6}$/i.test(farbe) ? `<w:color w:val="${farbe.toUpperCase()}"/>` : '') +
+  (weite ? `<w:w w:val="${weite}"/>` : '') +
   `<w:sz w:val="${halbe(groesse)}"/><w:szCs w:val="${halbe(groesse)}"/>`;
+
+/** Die Läufe eines Teils mit Fett, Kursiv, Farbe und Laufweite. */
+function teilLaeufe(teil: Teil, schrift: Stueck['schrift'], groesse: number): string {
+  return (teil.laeufe ?? [{ text: teil.text }])
+    .map((l) => laeufe(l.text, lauf(schrift, groesse, l.fett, l.kursiv, l.farbe, teil.weite)))
+    .join('');
+}
 
 function koerperFliesstext(seiten: Seite[]): string {
   return absaetzeAus(seiten)
@@ -114,7 +132,7 @@ function koerperSeitengetreu(seiten: Seite[]): string {
         const breite = twips(Math.min(seite.breite - teil.x, teil.breite * 1.08 + 6));
         const rahmen = `<w:framePr w:w="${breite}" w:hRule="auto" w:hAnchor="page" w:vAnchor="page" w:x="${twips(teil.x)}" w:y="${twips(z.oben)}" w:wrap="around"/>`;
         teile.push(
-          `<w:p><w:pPr>${rahmen}<w:spacing w:before="0" w:after="0" w:line="240" w:lineRule="auto"/></w:pPr>${bild}${laeufe(teil.text, lauf(z.schrift, z.groesse))}</w:p>`,
+          `<w:p><w:pPr>${rahmen}<w:spacing w:before="0" w:after="0" w:line="240" w:lineRule="auto"/></w:pPr>${bild}${teilLaeufe(teil, z.schrift, z.groesse)}</w:p>`,
         );
         bild = '';
       }

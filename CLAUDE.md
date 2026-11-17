@@ -55,17 +55,20 @@ speichern – ohne Konto, ohne Server, alles auf dem Gerät. Schwester-App der F
 - **PDF im Schreibprogramm bearbeiten (Klaus 17.11.: „wie in Corel“):** eine über „Datei öffnen“ gewählte PDF geht bei
   deutscher Oberfläche bearbeitbar im Schreibprogramm auf (`pdfBearbeitbar` in `lib/pdf-import/index.ts`, Anschluss in
   `openLocalFile`, `lib/document.ts`): jede Textzeile als Textrahmen an ihrer Stelle (Spalten und Tabellenzellen als eigene
-  Rahmen), die Bilder der Seite als eigene, bewegliche Objekte, alles Übrige (Linien, Tabellenrahmen, Flächen) als
-  Seitenbild im Hintergrund, in dem Text und Bilder übermalt sind. Seiten ohne Textebene (Scans) liest die Texterkennung
-  aus dem Ordner von Workflow PDF (`workflow-pdf/vendor/tesseract`, Deutsch). Menü „Datei“ hat dazu „Öffnen“ und (nur im
-  Schreibprogramm) „PDF importieren“ mit der Wahl „Als Fließtext“ (Überschriften, Absätze, ohne Bilder) oder
-  „Seitengetreu“ (wie oben) (`lib/onlyoffice/datei-menue.ts`). Bau: `lesen.ts` (PDF.js, Seitenbild, Bilder, OCR),
-  `modell.ts` (Zeilen, Absätze, Bildkästen), `docx.ts`, eigener ZIP-Schreiber `zip.ts`. **Die Zeichnungen einer Seite hängen
-  am ersten Textrahmen** – ein eigener Absatz am Seitenanfang wird vom Editor verdrängt und das Bild fehlt.
-  Beim Lesen steht ein Ladebalken „Seite n von m“ in der gewählten Farbe der App (`ladebalken`), damit ein langer Scan nicht wie ein Absturz aussieht.
-  Grenzen: Ersatzschriften (Arial/Times/Courier), kein Fett/Kursiv, schräg liegende oder beschnittene Bilder bleiben im
-  Hintergrund, Text in Fotos bleibt Bild, die Texterkennung findet nicht jede Tabellenzelle; das Ergebnis ist eine
-  Word-Datei (als PDF über „Herunterladen als“). Probe `test/unit/pdf-import.test.ts`.
+  Rahmen) mit Fett/Kursiv (aus dem Schriftnamen), Schriftfarbe (aus dem Seitenbild gelesen) und der Laufweite des Originals
+  (`w:w`, damit die Ersatzschrift nicht umbricht); die Bilder der Seite als eigene, bewegliche Objekte; alles Übrige (Linien,
+  Tabellenrahmen, Flächen) als Seitenbild im Hintergrund, in dem jedes Textstück in der Farbe seines Untergrunds übermalt
+  ist (weiße Schrift auf rotem Balken hinterlässt den roten Balken, nicht Weiß). **Keine Texterkennung in Bildern (Klaus
+  17.11.: „das geht nur mit KI“):** Seiten ohne Textebene (Scans, Titelbilder) bleiben ein Bild; Scannen ist Sache der
+  Kachel „PDF“. Menü „Datei“ hat dazu „Öffnen“ und (nur im Schreibprogramm) „PDF importieren“ mit der Wahl „Als Fließtext“
+  (Überschriften, Absätze, ohne Bilder) oder „Seitengetreu“ (wie oben) (`lib/onlyoffice/datei-menue.ts`). Bau: `lesen.ts`
+  (PDF.js, Seitenbild, Bilder, Farben), `modell.ts` (Zeilen, Läufe, Absätze, Bildkästen, `kastenFarben`, `schriftArt`),
+  `docx.ts`, eigener ZIP-Schreiber `zip.ts`. **Die Zeichnungen einer Seite hängen am ersten Textrahmen** – ein eigener
+  Absatz am Seitenanfang wird vom Editor verdrängt und das Bild fehlt. Beim Lesen steht ein Ladebalken „Seite n von m“ in
+  der gewählten Farbe der App (`ladebalken`). Grenzen: Ersatzschriften (Arial/Times/Courier), schräg liegende oder
+  beschnittene Bilder bleiben im Hintergrund, Text auf Fotos oder Verläufen hinterlässt einen einfarbigen Fleck; das
+  Ergebnis ist eine Word-Datei (als PDF über „Herunterladen als“). Geprüft an einem 27-seitigen Heft mit farbigen Kästen
+  und Tabellen. Probe `test/unit/pdf-import.test.ts`.
 - **Reiterleiste am Handy (Klaus 17.11.):** Datei/Startseite/… lässt sich mit dem Finger schieben, die kleinen
   Pfeile entfallen bei Berührung; bis 760 px weichen Dateiname und Beschriftung „Bearbeitung“ aus der Zeile
   (`lib/onlyoffice/guards/chrome.ts`).

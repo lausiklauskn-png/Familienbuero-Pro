@@ -5,7 +5,8 @@ import {
   bildKaesten,
   grundgroesse,
   zeilenAus,
-  zeilenAusOcr,
+  kastenFarben,
+  schriftArt,
   type Seite,
   type Stueck,
 } from '../../lib/pdf-import/modell';
@@ -127,7 +128,7 @@ describe('PDF-Import', () => {
     const z = (text: string, x: number): Stueck => ({ text, x, oben: 100, breite: 40, groesse: 12, schrift: 'sans' });
     const [zeile] = zeilenAus([z('Essig', 50), z('50 ml', 120)]);
     expect(zeile.text).toBe('Essig\t50 ml');
-    expect(zeile.teile).toEqual([
+    expect(zeile.teile).toMatchObject([
       { text: 'Essig', x: 50, breite: 40 },
       { text: '50 ml', x: 120, breite: 40 },
     ]);
@@ -161,17 +162,49 @@ describe('PDF-Import', () => {
     expect(kaesten).toEqual([{ x: 50, oben: 142, breite: 200, hoehe: 100 }]);
   });
 
-  it('rechnet erkannte Zeilen der Texterkennung von Bildpunkten in Punkt um', () => {
-    const zeilen = zeilenAusOcr(
-      [
-        { text: ' Zweite  Zeile\n', x0: 100, y0: 300, x1: 500, y1: 330 },
-        { text: 'Erste Zeile', x0: 100, y0: 200, x1: 400, y1: 228 },
-        { text: '  ', x0: 0, y0: 0, x1: 10, y1: 10 },
-      ],
-      2,
-    );
-    expect(zeilen.map((z) => z.text)).toEqual(['Erste Zeile', 'Zweite Zeile']);
-    expect(zeilen[0]).toMatchObject({ x: 50, oben: 100, breite: 150, groesse: 14 });
+  it('liest Papier- und Schriftfarbe aus den Bildpunkten eines Kastens', () => {
+    const punkte = (farben: [number, number, number][]): Uint8ClampedArray =>
+      new Uint8ClampedArray(farben.flatMap(([r, g, b]) => [r, g, b, 255]));
+    const rot: [number, number, number] = [143, 37, 43];
+    const weiss: [number, number, number] = [255, 255, 255];
+    // Weiße Schrift auf rotem Balken: überwiegend rot, ein Drittel weiß.
+    const balken = kastenFarben(punkte([rot, rot, rot, rot, weiss, weiss]));
+    expect(balken.papier).toEqual([143, 37, 43]);
+    expect(balken.schrift).toBe('ffffff');
+    // Einfarbige Fläche: keine Schrift zu erkennen.
+    expect(kastenFarben(punkte([weiss, weiss, weiss])).schrift).toBeUndefined();
+  });
+
+  it('erkennt Schnitt und Art am Namen der Schrift', () => {
+    expect(schriftArt('BAAAAA+PTSerif-Italic')).toEqual({ schrift: 'serif', fett: false, kursiv: true });
+    expect(schriftArt('DAAAAA+Oswald-Regular_SemiBold')).toEqual({ schrift: 'sans', fett: true, kursiv: false });
+    expect(schriftArt('PlayfairDisplayRoman-Black')).toMatchObject({ schrift: 'serif', fett: true });
+    expect(schriftArt('CourierNewPSMT')).toMatchObject({ schrift: 'mono', fett: false });
+  });
+
+  it('gibt Fett, Kursiv, Farbe und Laufweite seitengetreu weiter', () => {
+    const s = (text: string, x: number, mehr: Partial<Stueck>): Stueck => ({
+      text,
+      x,
+      oben: 100,
+      breite: 40,
+      groesse: 10,
+      schrift: 'serif',
+      ...mehr,
+    });
+    const [zeile] = zeilenAus([
+      s('Achtung.', 50, { fett: true, farbe: '8f252b' }),
+      s(' Nie mischen', 90, { kursiv: true }),
+    ]);
+    expect(zeile.teile).toHaveLength(1);
+    expect(zeile.teile?.[0].laeufe).toEqual([
+      { text: 'Achtung.', fett: true, kursiv: undefined, farbe: '8f252b' },
+      { text: ' Nie mischen', fett: undefined, kursiv: true, farbe: undefined },
+    ]);
+    (zeile.teile as { weite?: number }[])[0].weite = 88;
+    const xml = dokumentXml([{ breite: 595, hoehe: 842, zeilen: [zeile] }], 'seitengetreu');
+    expect(xml).toContain('<w:b/><w:color w:val="8F252B"/><w:w w:val="88"/>');
+    expect(xml).toContain('<w:i/><w:w w:val="88"/>');
   });
 
   it('zeigt beim Lesen einen Ladebalken mit Seite und Anteil und räumt ihn weg', async () => {
