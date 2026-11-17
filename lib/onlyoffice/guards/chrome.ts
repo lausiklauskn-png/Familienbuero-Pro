@@ -1,5 +1,6 @@
 import { COMPACT_VIEWPORT_MAX_WIDTH } from '../viewport';
 import { farbpaletteEinrichten } from '../farbpalette';
+import { dateiMenueEinrichten } from '../datei-menue';
 
 /**
  * 1. Strip the OnlyOffice chrome that has no place in a single-user local editor
@@ -13,6 +14,7 @@ import { farbpaletteEinrichten } from '../farbpalette';
  */
 export function injectLocalChromeCss(doc: Document): void {
   farbpaletteEinrichten(doc);
+  dateiMenueEinrichten(doc);
   if (!doc.getElementById('oo-local-chrome-css')) {
     const style = doc.createElement('style');
     style.id = 'oo-local-chrome-css';

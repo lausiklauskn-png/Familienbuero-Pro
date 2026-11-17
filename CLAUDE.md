@@ -49,6 +49,14 @@ speichern – ohne Konto, ohne Server, alles auf dem Gerät. Schwester-App der F
   `familienbuero/wfpdf/` (eigene Datenbank `FamilienbueroWFPDF1`, kein eigener Worker, „⟳“ ohne fremde
   Vorräte, Pfeil zurück zur Startseite). Grund: das eingebaute PDF-Programm des Büro-Kerns speichert eine
   bearbeitete PDF als Word-Datei. „Datei öffnen“ mit einer PDF führt weiter in das eingebaute Programm.
+- **PDF-Import ins Schreibprogramm (Klaus 17.11.):** Menü „Datei“ des Editors hat zwei eigene Einträge:
+  „Öffnen“ und (nur im Schreibprogramm) „PDF importieren“ (`lib/onlyoffice/datei-menue.ts`). Der Import fragt
+  „Als Fließtext“ oder „Seitengetreu“ und baut auf dem Gerät eine Word-Datei (`lib/pdf-import/`: `lesen.ts`
+  mit PDF.js, `modell.ts` Zeilen/Absätze, `docx.ts`, eigener ZIP-Schreiber `zip.ts`), die über die Übergabe
+  von „Datei öffnen“ aufgeht. Fließtext: Überschriften nach Größe, Absätze, Tabulatoren. Seitengetreu: jede
+  Zeile als Textrahmen an ihrer Stelle. Grenzen: keine Bilder, Linien, Tabellenrahmen, kein Fett/Kursiv im
+  seitengetreuen Import; Scans ohne Textebene werden abgewiesen (Hinweis auf die Kachel „PDF“).
+  Probe `test/unit/pdf-import.test.ts`.
 - **Unterordner:** die App läuft unter `/Familienbuero-Pro/`. Dafür relative Pfade in Startseite, Editor,
   Verlauf; `public/sw.js` (BASE/lokal), `public/sw-register.js`, `public/landing-prefetch.js`,
   `lib/offline-worker-control.ts` (`appRoot`), `lib/onlyoffice/guards/x2t-worker.ts`.
