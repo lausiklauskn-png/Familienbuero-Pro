@@ -82,6 +82,42 @@ for (const rel of weg) {
 }
 // Die App ist privat: Suchmaschinen sollen sie nicht aufnehmen.
 writeFileSync(resolve(dist, 'robots.txt'), 'User-agent: *\nDisallow: /\n');
+
+// Die Verlaufsseite („Zuletzt bearbeitet“) verweist in ihrem Kopf auf die Wurzel
+// des Servers (`/`, `/history?…`). Im Unterordner `/Familienbuero-Pro/` führt das
+// aus der App hinaus auf eine Fehlerseite: die Verweise an den Ordner der Seite binden.
+const verlauf = resolve(dist, 'history.html');
+if (existsSync(verlauf)) {
+  const vorher = readFileSync(verlauf, 'utf8');
+  // Dazu das Bild der Startseite: eigener Name und eigenes Zeichen im Kopf, immer hell,
+  // ohne die Verweise und Erklärtexte der Vorlage (familienbuero/verlauf.css).
+  const stil = readFileSync(new URL('../familienbuero/verlauf.css', import.meta.url), 'utf8');
+  const nachher = vorher
+    .replaceAll('href="/"', 'href="./"')
+    .replaceAll('href="/history?', 'href="./history?')
+    .replace("var t = localStorage.getItem('ran-theme');", "var t = 'light';")
+    .replace('<title>Local history</title>', '<title>Familienbüro Pro</title>')
+    .replace(
+      '<span class="wordmark">Document Editor</span>',
+      '<img src="./icons/document-192.png" alt="" /><span class="wordmark">Familienbüro Pro</span>',
+    )
+    .replace('</head>', `<style id="fb-verlauf">${stil}</style></head>`);
+  for (const muss of ["var t = 'light';", 'id="fb-verlauf"', 'Familienbüro Pro</span>']) {
+    if (!nachher.includes(muss)) {
+      console.error('Verlaufsseite: erwartete Stelle der Vorlage nicht gefunden:', muss);
+      process.exit(1);
+    }
+  }
+  if (nachher !== vorher) {
+    writeFileSync(verlauf, nachher);
+    console.log('Verlaufsseite: Verweise an den Ordner gebunden.');
+  }
+  const rest = [...nachher.matchAll(/href="(\/[^"/][^"]*)"/g)].map((m) => m[1]);
+  if (rest.length) {
+    console.error('Verlaufsseite verweist noch auf die Wurzel des Servers:', rest.join(', '));
+    process.exit(1);
+  }
+}
 console.log(`Seiten der Vorlage entfernt: ${entfernt} Einträge`);
 
 // --- Gegenprobe: der Offline-Worker darf nichts Entferntes vorhalten wollen ----
