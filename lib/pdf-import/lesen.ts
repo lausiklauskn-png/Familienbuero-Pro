@@ -2,11 +2,11 @@ import {
   bildKaesten,
   kastenFarben,
   schriftArt,
+  weitenSetzen,
   zeilenAus,
   type Bild,
   type Seite,
   type Stueck,
-  type Zeile,
 } from './modell';
 
 export interface LeseWahl {
@@ -15,8 +15,6 @@ export interface LeseWahl {
   /** Fortschritt: Seite `n` von `von`. */
   fortschritt?: (n: number, von: number) => void;
 }
-
-const ERSATZ: Record<Stueck['schrift'], string> = { serif: 'Times New Roman', sans: 'Arial', mono: 'Courier New' };
 
 /** Ein Stück mit seinem Kasten im Seitenbild. */
 function kasten(s: Stueck, massstab: number, breite: number, hoehe: number): [number, number, number, number] | null {
@@ -62,37 +60,6 @@ function bildAusBild(flaeche: CanvasRenderingContext2D, k: Bild, massstab: numbe
   const { papier } = kastenFarben(streifen);
   flaeche.fillStyle = `rgb(${papier[0]},${papier[1]},${papier[2]})`;
   flaeche.fillRect(x, y, b, h);
-}
-
-/** Die Laufweite je Teil: wie breit liefe der Text in der Ersatzschrift, verglichen mit dem Original? */
-function weitenSetzen(zeilen: Zeile[]): void {
-  const mass = document.createElement('canvas').getContext('2d');
-  if (!mass) return;
-  for (const z of zeilen) {
-    for (const teil of z.teile ?? []) {
-      let breite = 0;
-      for (const lauf of teil.laeufe ?? []) {
-        mass.font = `${lauf.kursiv ? 'italic ' : ''}${lauf.fett ? 'bold ' : ''}${z.groesse}px "${ERSATZ[z.schrift]}"`;
-        breite += mass.measureText(lauf.text).width;
-      }
-      if (breite <= 0 || teil.breite <= 0) continue;
-      if (teil.sperrung) {
-        // Gesperrte Schrift: der Rest der Breite verteilt sich als Abstand zwischen den Zeichen --
-        // mindestens ein Zehntel der Schriftgröße, damit die Buchstaben nie aneinander kleben. Läuft die
-        // Ersatzschrift dafür zu breit, wird sie schmaler gestellt.
-        const luecken = Math.max(1, teil.text.length - 1);
-        const mindestens = z.groesse * 0.1;
-        teil.sperrung = Math.min(z.groesse, Math.max(mindestens, (teil.breite - breite) / luecken));
-        const rest = teil.breite - teil.sperrung * luecken;
-        if (rest < breite * 0.97) teil.weite = Math.max(50, Math.round((rest / breite) * 96));
-        continue;
-      }
-      // Etwas knapper als gemessen: die Schrift des Editors läuft eher breiter als die des Browsers.
-      const weite = Math.round((teil.breite / breite) * 97);
-      // Nur deutliche Abweichungen ausgleichen, und nicht bis zur Unleserlichkeit.
-      if (weite < 95 || weite > 108) teil.weite = Math.min(130, Math.max(50, weite));
-    }
-  }
 }
 
 /** Die Bilder der Seite ausschneiden (vor dem Übermalen) und ihre Stelle im Hintergrund leeren. */
