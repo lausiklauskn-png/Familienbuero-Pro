@@ -1,23 +1,29 @@
-/* Familienbüro Pro: Farben im eingebetteten Klon von Workflow PDF. Letztes Stylesheet
-   (bin/wfpdf-nachziehen.mjs); der Klon selbst ist byte-gleich. Vorbild: fa-wfpdf-thema.css der Familienakte.
+/* Familienbüro Pro: Farben und Zusätze im eingebetteten Klon von Workflow PDF. Letztes Stylesheet
+   (bin/wfpdf-nachziehen.mjs); der Klon selbst ist byte-gleich.
+   Klaus 17.11.2026: Rot, in denselben Wasserfarben wie Startseite und Editor -- ein blasses Rot mit
+   Pinselverlauf im Kopf, passend zur Kachel „PDF“.
    Ausgeblendet: Mycel-Leiste, Installieren und ⟳ (gehören zum Familienbüro, nicht zum Klon),
    „Im Netz antworten“ (braucht den Mycel-Knoten). */
 :root {
-  --rot: #087f7a;
-  --rot-d: #0b3154;
-  --rot-h: #e8f6f5;
-  --blau: #164f7d;
-  --blau-h: #edf5fb;
-  --ink: #15283a;
-  --ink2: #627181;
-  --linie: #d8e2ea;
-  --grund: #f2f7fa;
+  --rot: #c9354a;
+  --rot-d: #8f1f36;
+  --rot-h: #fdecef;
+  --blau: #a8324a;
+  --blau-h: #fbeef0;
+  --ink: #3a1a22;
+  --ink2: #7a5c63;
+  --linie: #efd6da;
+  --grund: #fbf5f5;
   --flaeche: #fff;
-  --ok: #167249;
-  --schatten: 0 9px 30px rgba(16, 52, 83, 0.08);
+  --schatten: 0 9px 30px rgba(143, 31, 54, 0.08);
 }
 .kopf {
-  border-bottom-color: #087f7a;
+  border-bottom-color: #e8a9b3;
+  background-image:
+    radial-gradient(540px 70px at 13% 8px, rgba(226, 89, 107, 0.34), transparent 70%),
+    radial-gradient(430px 54px at 50% 58px, rgba(255, 255, 255, 0.7), transparent 70%),
+    radial-gradient(580px 80px at 87% 14px, rgba(249, 201, 173, 0.5), transparent 72%),
+    linear-gradient(96deg, #f6c6cd, #fbe0e4 48%, #fdeee8);
 }
 .netzleiste,
 #btnInstall,
@@ -34,12 +40,12 @@
   height: 34px;
   margin-right: 6px;
   border-radius: 10px;
-  color: #0b3154;
+  color: #8f1f36;
   font-size: 26px;
   line-height: 1;
   text-decoration: none;
   flex: 0 0 auto;
 }
 #fb-zurueck:hover {
-  background: rgba(11, 49, 84, 0.08);
+  background: rgba(255, 255, 255, 0.55);
 }
