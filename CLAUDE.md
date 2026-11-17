@@ -33,8 +33,14 @@ speichern – ohne Konto, ohne Server, alles auf dem Gerät. Schwester-App der F
   Verhalten der Vorlage. Deutsch heißt: eigene Vorlagen für Textdokument (A4, Calibri 11) und Folien (16:9)
   aus `lib/leer-docx.ts` / `lib/leer-pptx.ts` (erzeugt aus `familienbuero/leer.*`), deutsche Dateinamen,
   Region de-DE, Zentimeter. Anschluss in `lib/document.ts`, `lib/onlyoffice-editor.ts`.
-- **Farben:** Kopfleisten der hellen Standardansicht in Familienakte-Farben (Schreiben `#0b3154`, Tabellen
-  `#087f7a`, Folien/PDF `#8f252b`) – `lib/onlyoffice/guards/chrome.ts`.
+- **Farben (Klaus 17.11.):** die helle Standardansicht („Klassisch Hell“) startet in blassen Wasserfarben mit
+  Pinselverlauf in der Kopfleiste – wie die Kacheln der Startseite: Schreiben blau, Tabellen grün, Folien
+  koralle. Runder Farbknopf rechts in der Kopfleiste: Wie die Kachel · Wasserblau · Wassergrün · Helles Gelb ·
+  Koralle · Kräftig (die dunklen Familienakte-Farben aus `lib/onlyoffice/guards/chrome.ts`). Je Gerät gemerkt
+  (`fb-farbe`). Die übrigen Ansichten des Editors (Ansicht → Thema) bleiben unverändert, dort kein Knopf.
+  `lib/onlyoffice/farbpalette.ts`, Probe `test/unit/farbpalette.test.ts`.
+- **Geschenkbox:** nach Box und Buch eine dritte Seite mit Browser, Android, Windows und den Voraussetzungen
+  der Offline-KI; Bilder als WebP (Datei 0,7 MB, damit die Vorschau im Chat sie lädt).
 - **Unterordner:** die App läuft unter `/Familienbuero-Pro/`. Dafür relative Pfade in Startseite, Editor,
   Verlauf; `public/sw.js` (BASE/lokal), `public/sw-register.js`, `public/landing-prefetch.js`,
   `lib/offline-worker-control.ts` (`appRoot`), `lib/onlyoffice/guards/x2t-worker.ts`.
