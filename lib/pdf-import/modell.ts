@@ -12,6 +12,30 @@ export interface Stueck {
   breite: number;
   groesse: number;
   schrift: 'serif' | 'sans' | 'mono';
+  fett?: boolean;
+  kursiv?: boolean;
+  /** Schriftfarbe als `rrggbb`, aus dem Seitenbild gelesen. */
+  farbe?: string;
+}
+
+/** Ein Stück Text gleicher Auszeichnung innerhalb eines Teils. */
+export interface Lauf {
+  text: string;
+  fett?: boolean;
+  kursiv?: boolean;
+  farbe?: string;
+}
+
+/** Ein durch große Lücken abgegrenzter Teil einer Zeile (Spalte, Tabellenzelle) mit seiner Lage. */
+export interface Teil {
+  text: string;
+  x: number;
+  breite: number;
+  laeufe?: Lauf[];
+  /** Laufweite in Prozent, damit die Ersatzschrift so breit läuft wie das Original. */
+  weite?: number;
+  /** Gesperrte Schrift (B E I  U N S): der Abstand zwischen den Buchstaben in Punkt. */
+  sperrung?: number;
 }
 
 export interface Zeile {
@@ -22,7 +46,7 @@ export interface Zeile {
   groesse: number;
   schrift: Stueck['schrift'];
   /** Die durch große Lücken getrennten Teile der Zeile (Spalten, Tabellenzellen) mit ihrer Lage. */
-  teile?: { text: string; x: number; breite: number }[];
+  teile?: Teil[];
 }
 
 /** Ein Bild der Seite als eigenes Objekt. Maße in Punkt, `oben` ab Seitenanfang. */
@@ -44,35 +68,6 @@ export interface Seite {
   bilder?: Bild[];
 }
 
-/** Eine von der Texterkennung gefundene Zeile, Maße in Bildpunkten. */
-export interface OcrZeile {
-  text: string;
-  x0: number;
-  y0: number;
-  x1: number;
-  y1: number;
-}
-
-/** Erkannte Zeilen (Bildpunkte) in Zeilen der Seite (Punkt) umrechnen. */
-export function zeilenAusOcr(erkannt: OcrZeile[], massstab: number): Zeile[] {
-  return erkannt
-    .map((z) => ({ ...z, text: z.text.replace(/\s+/g, ' ').trim() }))
-    .filter((z) => z.text !== '' && z.x1 > z.x0 && z.y1 > z.y0)
-    .map((z) => {
-      const hoehe = (z.y1 - z.y0) / massstab;
-      return {
-        text: z.text,
-        x: z.x0 / massstab,
-        oben: z.y0 / massstab,
-        breite: (z.x1 - z.x0) / massstab,
-        // Der Kasten einer Zeile reicht von der Oberlänge bis zur Unterlänge.
-        groesse: Math.min(48, Math.max(6, Math.round(hoehe * 2) / 2)),
-        schrift: 'sans' as const,
-      };
-    })
-    .sort((a, b) => a.oben - b.oben || a.x - b.x);
-}
-
 export interface Absatz {
   text: string;
   groesse: number;
@@ -89,23 +84,71 @@ export function zeilenAus(stuecke: Stueck[]): Zeile[] {
     if (letzte && Math.abs(letzte[0].oben - s.oben) < Math.max(letzte[0].groesse, s.groesse) * 0.5) letzte.push(s);
     else zeilen.push([s]);
   }
-  return zeilen.map((stuecke) => {
+  return zeilen.map((roh) => {
+    // Gesperrte Schrift liefert der PDF-Leser oft schon mit Leerzeichen zwischen den Buchstaben
+    // („B E I“, „U N S“): zurück zu Wörtern, die Sperrung wird Zeichenabstand.
+    const muster = /^\S( \S)+$/;
+    const gesperrteZeile = roh.some((s) => muster.test(s.text.trim()) && s.text.trim().length >= 5);
+    const zusammen = new Set<Stueck>();
+    const stuecke = roh.map((s) => {
+      if (!gesperrteZeile || !muster.test(s.text.trim())) return s;
+      const neu = { ...s, text: s.text.trim().replace(/ /g, '') };
+      zusammen.add(neu);
+      return neu;
+    });
     stuecke.sort((a, b) => a.x - b.x);
-    const teile: { text: string; x: number; breite: number }[] = [];
+    const teile: Teil[] = [];
+    const gleich = (l: Lauf, t: Stueck): boolean =>
+      !!l.fett === !!t.fett && !!l.kursiv === !!t.kursiv && (l.farbe ?? '') === (t.farbe ?? '');
+    // Gesperrte Schrift kommt Buchstabe für Buchstabe: der übliche Abstand zwischen einzelnen
+    // Buchstaben ist dann die Sperrung, erst eine deutlich größere Lücke trennt Wörter.
+    const einzeln = (s: Stueck): boolean => s.text.trim().length === 1;
+    const abstaende: number[] = [];
+    for (let i = 1; i < stuecke.length; i++) {
+      const vor = stuecke[i - 1];
+      if (einzeln(vor) && einzeln(stuecke[i])) abstaende.push(stuecke[i].x - vor.x - vor.breite);
+    }
+    abstaende.sort((a, b) => a - b);
+    const mitte = abstaende[Math.floor(abstaende.length / 2)] ?? 0;
+    const sperrung = abstaende.length >= 3 && mitte > stuecke[0].groesse * 0.12 ? mitte : 0;
     let ende = stuecke[0].x;
+    let vorher: Stueck | undefined;
     for (const t of stuecke) {
       const luecke = t.x - ende;
       const letzter = teile[teile.length - 1];
-      if (!letzter || luecke > t.groesse * 0.9) {
-        teile.push({ text: t.text, x: t.x, breite: t.breite });
+      const gesperrt = sperrung > 0 && vorher !== undefined && einzeln(vorher) && einzeln(t);
+      vorher = t;
+      if (!letzter || luecke > Math.max(t.groesse * 0.9, sperrung * 5)) {
+        teile.push({
+          text: t.text,
+          x: t.x,
+          breite: t.breite,
+          laeufe: [{ text: t.text, fett: t.fett, kursiv: t.kursiv, farbe: t.farbe }],
+          ...(sperrung > 0 && einzeln(t) ? { sperrung } : {}),
+          // Vorläufiger Wert; der Leser misst die Sperrung an der Ersatzschrift nach.
+          ...(zusammen.has(t) ? { sperrung: Math.max(0.5, t.groesse * 0.15) } : {}),
+        });
       } else {
-        const leer = luecke > t.groesse * 0.2 && !letzter.text.endsWith(' ') && !t.text.startsWith(' ');
-        letzter.text += (leer ? ' ' : '') + t.text;
+        const wortluecke = gesperrt ? luecke > sperrung * 2.2 : luecke > t.groesse * 0.2;
+        const leer = wortluecke && !letzter.text.endsWith(' ') && !t.text.startsWith(' ');
+        const dazu = (leer ? ' ' : '') + t.text;
+        letzter.text += dazu;
         letzter.breite = t.x + t.breite - letzter.x;
+        const laeufe = letzter.laeufe as Lauf[];
+        const lauf = laeufe[laeufe.length - 1];
+        if (gleich(lauf, t)) lauf.text += dazu;
+        else laeufe.push({ text: dazu, fett: t.fett, kursiv: t.kursiv, farbe: t.farbe });
       }
       ende = t.x + t.breite;
     }
-    for (const teil of teile) teil.text = teil.text.replace(/[  ]+/g, ' ').trim();
+    for (const teil of teile) {
+      teil.text = teil.text.replace(/[  ]+/g, ' ').trim();
+      const laeufe = teil.laeufe as Lauf[];
+      for (const lauf of laeufe) lauf.text = lauf.text.replace(/[  ]+/g, ' ');
+      laeufe[0].text = laeufe[0].text.trimStart();
+      laeufe[laeufe.length - 1].text = laeufe[laeufe.length - 1].text.trimEnd();
+      teil.laeufe = laeufe.filter((lauf) => lauf.text !== '');
+    }
     const gefuellt = teile.filter((teil) => teil.text !== '');
     const groesste = stuecke.reduce((a, b) => (b.groesse > a.groesse ? b : a));
     return {
@@ -118,6 +161,64 @@ export function zeilenAus(stuecke: Stueck[]): Zeile[] {
       teile: gefuellt,
     };
   });
+}
+
+/**
+ * Papier- und Schriftfarbe eines Textkastens aus seinen Bildpunkten (RGBA): das Papier ist die
+ * häufigste Farbe, die Schrift die häufigste, die sich deutlich davon abhebt.
+ */
+export function kastenFarben(punkte: Uint8ClampedArray): { papier: [number, number, number]; schrift?: string } {
+  const zaehlen = (nimm: (r: number, g: number, b: number) => boolean): [number, number, number] | undefined => {
+    const eimer = new Map<number, [number, number, number, number]>();
+    for (let i = 0; i + 3 < punkte.length; i += 4) {
+      const r = punkte[i];
+      const g = punkte[i + 1];
+      const b = punkte[i + 2];
+      if (!nimm(r, g, b)) continue;
+      const k = ((r >> 4) << 8) | ((g >> 4) << 4) | (b >> 4);
+      const e = eimer.get(k);
+      if (e) {
+        e[0] += r;
+        e[1] += g;
+        e[2] += b;
+        e[3]++;
+      } else eimer.set(k, [r, g, b, 1]);
+    }
+    let beste: [number, number, number, number] | undefined;
+    for (const e of eimer.values()) if (!beste || e[3] > beste[3]) beste = e;
+    return beste && [Math.round(beste[0] / beste[3]), Math.round(beste[1] / beste[3]), Math.round(beste[2] / beste[3])];
+  };
+  const papier = zaehlen(() => true) ?? [255, 255, 255];
+  const abstand = (r: number, g: number, b: number): number =>
+    Math.abs(r - papier[0]) + Math.abs(g - papier[1]) + Math.abs(b - papier[2]);
+  // Erst alles, was sich abhebt; davon zählt nur der Kern der Buchstaben, nicht ihr weicher Rand:
+  // die Farben nahe am größten Abstand zum Papier.
+  let weitester = 0;
+  for (let i = 0; i + 3 < punkte.length; i += 4) {
+    weitester = Math.max(weitester, abstand(punkte[i], punkte[i + 1], punkte[i + 2]));
+  }
+  const schrift = weitester > 150 ? zaehlen((r, g, b) => abstand(r, g, b) >= weitester * 0.8) : undefined;
+  const hex = (n: number): string => n.toString(16).padStart(2, '0');
+  return { papier, schrift: schrift && hex(schrift[0]) + hex(schrift[1]) + hex(schrift[2]) };
+}
+
+/** Schnitt und Art einer Schrift aus ihrem Namen in der PDF, etwa „PTSerif-BoldItalic“. */
+export function schriftArt(name: string): { schrift: Stueck['schrift']; fett: boolean; kursiv: boolean } {
+  const n = name.toLowerCase();
+  const schrift = /mono|courier|consol/.test(n)
+    ? 'mono'
+    : /sans|arial|helvet|oswald|roboto|calibri|verdana|inter|lato|montserrat|opensans|noto(?!serif)|segoe|tahoma|gothic|grotesk|din\b/.test(
+          n,
+        )
+      ? 'sans'
+      : /serif|times|playfair|georgia|garamond|book|minion|palatino|cambria|merriweather|lora|roman/.test(n)
+        ? 'serif'
+        : 'sans';
+  return {
+    schrift,
+    fett: /bold|black|heavy|semibold|demi|medium|extrab/.test(n),
+    kursiv: /italic|oblique|kursiv/.test(n),
+  };
 }
 
 /**

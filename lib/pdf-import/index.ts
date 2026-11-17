@@ -167,7 +167,6 @@ async function alsWord(datei: File, art: ImportArt): Promise<File | null> {
   try {
     const seiten = await pdfLesen(new Uint8Array(await datei.arrayBuffer()), {
       bilder: art === 'seitengetreu',
-      ocr: true,
       fortschritt: balken.zeigen,
     });
     if (!seiten.some((seite) => seite.zeilen.length > 0 || seite.bild)) return null;
@@ -179,8 +178,8 @@ async function alsWord(datei: File, art: ImportArt): Promise<File | null> {
 
 /**
  * Eine über „Datei öffnen“ gewählte PDF (Klaus 17.11.2026): sie geht im Schreibprogramm auf --
- * das Bild jeder Seite im Hintergrund, der Text als bearbeitbare Zeilen an seiner Stelle, bei
- * Scans über die Texterkennung. Nur bei deutscher Oberfläche; sonst und bei einem Fehler bleibt
+ * das Bild jeder Seite im Hintergrund, der Text als bearbeitbare Zeilen an seiner Stelle. Seiten
+ * ohne Text (Scans, Titelbilder) bleiben ein Bild -- keine Texterkennung in Bildern (Klaus 17.11.). Nur bei deutscher Oberfläche; sonst und bei einem Fehler bleibt
  * es bei der Datei selbst.
  */
 export async function pdfBearbeitbar(datei: File): Promise<File> {
@@ -201,7 +200,11 @@ export async function pdfImportieren(vorgabe?: File): Promise<void> {
   try {
     const docx = await alsWord(datei, art);
     if (!docx) {
-      melden(deutsch() ? 'In dieser PDF ließ sich kein Text erkennen.' : 'No text was found in this PDF.');
+      melden(
+        deutsch()
+          ? 'Diese PDF enthält keinen Text (Scan). Scannen: Kachel „PDF“.'
+          : 'This PDF has no text layer (scan).',
+      );
       return;
     }
     // Schon fertig gebaut: der Editor soll die Word-Datei öffnen, nicht noch einmal umwandeln.
