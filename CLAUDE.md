@@ -47,7 +47,8 @@ speichern – ohne Konto, ohne Server, alles auf dem Gerät. Schwester-App der F
   getrenntes Programm, nicht mit dem Büro-Kern verwoben). **Nie von Hand ändern, nur
   `node bin/wfpdf-nachziehen.mjs`** (`--pruefen` vergleicht; läuft im Bau). Eigen: Brücke und Farben in
   `familienbuero/wfpdf/` (eigene Datenbank `FamilienbueroWFPDF1`, kein eigener Worker, „⟳“ ohne fremde
-  Vorräte, Pfeil zurück zur Startseite). Grund: das eingebaute PDF-Programm des Büro-Kerns speichert eine
+  Vorräte, Pfeil zurück zur Startseite). Farben: Wasserfarben-Rot mit Pinselverlauf und dieselbe Farbwahl wie im
+  Editor (Knopf im Kopf, gemeinsamer Schlüssel `fb-farbe`; ohne Wahl rot, „Kräftig“ = eigene Farben von Workflow PDF). Grund: das eingebaute PDF-Programm des Büro-Kerns speichert eine
   bearbeitete PDF als Word-Datei. „Datei öffnen“ mit einer PDF führt weiter in das eingebaute Programm.
 - **Unterordner:** die App läuft unter `/Familienbuero-Pro/`. Dafür relative Pfade in Startseite, Editor,
   Verlauf; `public/sw.js` (BASE/lokal), `public/sw-register.js`, `public/landing-prefetch.js`,

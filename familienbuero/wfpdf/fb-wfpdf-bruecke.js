@@ -115,6 +115,32 @@
 
   // 3. Marke und Weg zurück. In der Android-Hülle heißt die Startseite index.html.
   document.documentElement.setAttribute('data-fb-eingebettet', '1');
+
+  // 4. Farbwahl wie im Editor (lib/onlyoffice/farbpalette.ts): derselbe Schlüssel, damit eine
+  //    eigene Wahl in allen Programmen gilt. Ohne Wahl („auto“) ist Workflow PDF rot.
+  var FARBEN = [
+    ['auto', 'Wie die Kachel', 'conic-gradient(#f6c6cd 0 25%, #a9cff2 0 50%, #aee2cc 0 75%, #f7e3a0 0)'],
+    ['rot', 'Wasserrot', 'linear-gradient(135deg, #f6c6cd, #fdeee8)'],
+    ['blau', 'Wasserblau', 'linear-gradient(135deg, #a9cff2, #dcedf5)'],
+    ['gruen', 'Wassergrün', 'linear-gradient(135deg, #aee2cc, #e4f3d6)'],
+    ['gelb', 'Helles Gelb', 'linear-gradient(135deg, #f7e3a0, #fdf5dc)'],
+    ['koralle', 'Koralle', 'linear-gradient(135deg, #f9c9ad, #fdebd9)'],
+    ['kraeftig', 'Kräftig', 'linear-gradient(135deg, #e0231b, #a3140f)'],
+  ];
+  var gewaehlt = function () {
+    try {
+      var w = W.localStorage.getItem('fb-farbe');
+      for (var i = 0; i < FARBEN.length; i++) if (FARBEN[i][0] === w) return w;
+    } catch {
+      /* ohne Speicher: Vorgabe */
+    }
+    return 'auto';
+  };
+  var anwenden = function (wahl) {
+    document.documentElement.setAttribute('data-fb-wahl', wahl);
+    document.documentElement.setAttribute('data-fb-farbe', wahl === 'auto' ? 'rot' : wahl);
+  };
+  anwenden(gewaehlt());
   W.FB_BRUECKE = { db: DB_NEU, schluessel: KEY_NEU };
   document.addEventListener('DOMContentLoaded', function () {
     var kopf = document.querySelector('.kopf');
@@ -127,5 +153,55 @@
     a.title = 'Familienbüro Pro';
     a.setAttribute('aria-label', 'Familienbüro Pro');
     kopf.insertBefore(a, kopf.firstChild);
+
+    var knopf = document.createElement('button');
+    knopf.id = 'fb-farbe-knopf';
+    knopf.type = 'button';
+    knopf.title = 'Farben';
+    knopf.setAttribute('aria-label', 'Farben');
+    var wahl = document.createElement('div');
+    wahl.id = 'fb-farbe-wahl';
+    wahl.hidden = true;
+    var markieren = function () {
+      var aktiv = document.documentElement.getAttribute('data-fb-wahl');
+      wahl.querySelectorAll('button').forEach(function (b) {
+        b.setAttribute('aria-pressed', String(b.getAttribute('data-farbe') === aktiv));
+      });
+    };
+    FARBEN.forEach(function (f) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.setAttribute('data-farbe', f[0]);
+      b.title = f[1];
+      b.setAttribute('aria-label', f[1]);
+      b.style.background = f[2];
+      b.addEventListener('click', function () {
+        anwenden(f[0]);
+        try {
+          W.localStorage.setItem('fb-farbe', f[0]);
+        } catch {
+          /* ohne Speicher gilt die Wahl bis zum Schließen */
+        }
+        wahl.hidden = true;
+      });
+      wahl.appendChild(b);
+    });
+    knopf.addEventListener('click', function (ereignis) {
+      ereignis.stopPropagation();
+      if (!wahl.hidden) {
+        wahl.hidden = true;
+        return;
+      }
+      markieren();
+      wahl.hidden = false;
+      var r = knopf.getBoundingClientRect();
+      wahl.style.top = Math.round(r.bottom + 8) + 'px';
+      wahl.style.left = Math.round(Math.max(8, Math.min(r.left, W.innerWidth - wahl.offsetWidth - 8))) + 'px';
+    });
+    document.addEventListener('click', function (ereignis) {
+      if (!wahl.hidden && !wahl.contains(ereignis.target)) wahl.hidden = true;
+    });
+    a.insertAdjacentElement('afterend', knopf);
+    document.body.appendChild(wahl);
   });
 })();
