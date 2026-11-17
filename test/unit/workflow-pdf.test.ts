@@ -15,6 +15,16 @@ describe('Workflow PDF als eigener Teil', () => {
     expect(pruefen(wurzel)).toEqual([]);
   });
 
+  it('bringt das Embedding für die Bedeutungssuche mit, lässt aber den Mycel-Knoten weg', () => {
+    // vendor/sbkim/ fehlte zuerst: die Ausschlussregel galt für jeden Ordner namens „sbkim“,
+    // gemeint ist nur der Mycel-Knoten ganz oben. Ohne die zwei Dateien lädt das Modell nicht.
+    const pins = JSON.parse(lies('familienbuero/workflow-pdf.herkunft.json')).dateien;
+    expect(Object.keys(pins)).toContain('vendor/sbkim/03_embedding.js');
+    expect(Object.keys(pins)).toContain('vendor/sbkim/04_match.js');
+    expect(Object.keys(pins).some((pfad) => pfad.startsWith('sbkim/'))).toBe(false);
+    expect(lies('familienbuero/workflow-pdf/assets/app.js')).toContain("skriptLaden('vendor/sbkim/03_embedding.js");
+  });
+
   it('behält seine eigene Lizenz und trägt nur die kontrollierte Abweichung in index.html', () => {
     expect(lies('familienbuero/workflow-pdf/LICENSE')).toContain('Nutzungslizenz');
     const index = lies('familienbuero/workflow-pdf/index.html');

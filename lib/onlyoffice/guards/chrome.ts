@@ -32,6 +32,20 @@ export function injectLocalChromeCss(doc: Document): void {
       // Nur diese eine Ansicht: die übrigen (weiß, dunkel) haben eigene, darauf
       // abgestimmte Schriftfarben.
       '.theme-classic-light { --toolbar-header-document: #0b3154 !important; --toolbar-header-spreadsheet: #087f7a !important; --toolbar-header-presentation: #8f252b !important; --toolbar-header-pdf: #8f252b !important; }',
+      // Familienbüro Pro (Klaus 17.11.2026, am Handy): die Reiterleiste (Datei, Startseite, ...) mit dem
+      // Finger schieben statt über die kleinen Pfeile. Am schmalen Bildschirm weichen dafür der
+      // Dateiname und die Beschriftung des Bearbeiten-Knopfs aus der Reiterzeile.
+      '@media (pointer: coarse), (max-width: 760px) {',
+      '  #toolbar .box-tabs .tabs > ul { overflow-x: auto !important; overflow-y: hidden !important; scrollbar-width: none; touch-action: pan-x; }',
+      '  #toolbar .box-tabs .tabs > ul::-webkit-scrollbar { display: none; }',
+      '  #toolbar .box-tabs .tabs .scroll { display: none !important; }',
+      '}',
+      '@media (max-width: 760px) {',
+      '  #toolbar .box-tabs { display: flex !important; }',
+      '  #toolbar .box-tabs .tabs { flex: 1 1 auto !important; width: auto !important; max-width: none !important; min-width: 0 !important; }',
+      '  #toolbar .box-tabs .extra.right { flex: 0 0 auto !important; width: auto !important; }',
+      '  #toolbar .box-tabs #box-doc-name, #toolbar .box-tabs #slot-btn-edit-mode .caption { display: none !important; }',
+      '}',
       `@media (max-width: ${COMPACT_VIEWPORT_MAX_WIDTH}px), (pointer: coarse) and (max-height: ${COMPACT_VIEWPORT_MAX_WIDTH}px) {`,
       '  [data-layout-name="rightMenu"] { display: none !important; }',
       '}',

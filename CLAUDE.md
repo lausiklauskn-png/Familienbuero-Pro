@@ -51,7 +51,8 @@ speichern – ohne Konto, ohne Server, alles auf dem Gerät. Schwester-App der F
   `familienbuero/wfpdf/` (eigene Datenbank `FamilienbueroWFPDF1`, kein eigener Worker, „⟳“ ohne fremde
   Vorräte, Pfeil zurück zur Startseite). Farben: Wasserfarben-Rot mit Pinselverlauf und dieselbe Farbwahl wie im
   Editor (Knopf im Kopf, gemeinsamer Schlüssel `fb-farbe`; ohne Wahl rot, „Kräftig“ = eigene Farben von Workflow PDF). Grund: das eingebaute PDF-Programm des Büro-Kerns speichert eine
-  bearbeitete PDF als Word-Datei. „Datei öffnen“ mit einer PDF führt weiter in das eingebaute Programm.
+  bearbeitete PDF als Word-Datei. Eine über „Datei öffnen“ gewählte PDF geht bei deutscher Oberfläche an Workflow PDF (`lib/pdf-weiter.ts`,
+  `public/open-local.js`; Übergabe über den Vorrat `fb-wfpdf-geteilt` und `?geteilt=1`, Probe `test/unit/pdf-weiter.test.ts`).
 - **PDF-Import ins Schreibprogramm (Klaus 17.11.):** Menü „Datei“ des Editors hat zwei eigene Einträge:
   „Öffnen“ und (nur im Schreibprogramm) „PDF importieren“ (`lib/onlyoffice/datei-menue.ts`). Der Import fragt
   „Als Fließtext“ oder „Seitengetreu“ und baut auf dem Gerät eine Word-Datei (`lib/pdf-import/`: `lesen.ts`
@@ -60,6 +61,9 @@ speichern – ohne Konto, ohne Server, alles auf dem Gerät. Schwester-App der F
   Zeile als Textrahmen an ihrer Stelle. Grenzen: keine Bilder, Linien, Tabellenrahmen, kein Fett/Kursiv im
   seitengetreuen Import; Scans ohne Textebene werden abgewiesen (Hinweis auf die Kachel „PDF“).
   Probe `test/unit/pdf-import.test.ts`.
+- **Reiterleiste am Handy (Klaus 17.11.):** Datei/Startseite/… lässt sich mit dem Finger schieben, die kleinen
+  Pfeile entfallen bei Berührung; bis 760 px weichen Dateiname und Beschriftung „Bearbeitung“ aus der Zeile
+  (`lib/onlyoffice/guards/chrome.ts`).
 - **Unterordner:** die App läuft unter `/Familienbuero-Pro/`. Dafür relative Pfade in Startseite, Editor,
   Verlauf; `public/sw.js` (BASE/lokal), `public/sw-register.js`, `public/landing-prefetch.js`,
   `lib/offline-worker-control.ts` (`appRoot`), `lib/onlyoffice/guards/x2t-worker.ts`.
