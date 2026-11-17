@@ -67,7 +67,10 @@ speichern – ohne Konto, ohne Server, alles auf dem Gerät. Schwester-App der F
 - **Android, Schriften (0.1.1):** die APK 0.1.0 öffnete kein Dokument („cellGetMetrics“/„m_pFaceInfo“ of null,
   leeres Schriftfeld). Ursache: Capacitor liefert für Adressen ohne Dateiendung die Startseite aus – die
   Schriftdateien heißen `fonts/000` … ohne Endung. Darum `"html5mode": false` in `handy/capacitor.config.json`;
-  **nicht entfernen** (Probe `test/unit/huellen.test.ts`). Seiten in der APK immer mit `.html` ansteuern.
+  **nicht entfernen** (Probe `test/unit/huellen.test.ts`). Das allein reichte nicht: ohne html5mode liefert
+  Capacitor Pfade ohne Punkt gar nicht aus (APK 0.1.1: „Schriftarten nicht hochgeladen“, code -26).
+  Seit 0.1.2 erweitert `handy/capacitor-anpassen.mjs` im Ablauf die Bedingung in `WebViewLocalServer.java`
+  (nach `npm install`, vor `cap add`); der Schritt bricht ab, wenn die Stelle anders aussieht. Seiten in der APK immer mit `.html` ansteuern.
 - **„Öffnen mit“ (0.1.1):** `public/oeffnen-mit.js` (Start- und Editorseite) nimmt in den Hüllen die im
   Dateimanager gewählte Datei entgegen und legt sie in die Übergabe von „Datei öffnen“. Android: Anmeldung
   im Manifest über `handy/manifest-anpassen.mjs` (läuft im Ablauf nach `cap add android`), Adresse über das

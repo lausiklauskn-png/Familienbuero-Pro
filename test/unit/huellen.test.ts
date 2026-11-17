@@ -14,6 +14,12 @@ describe('Hüllen (Android, Windows)', () => {
     // bekäme der Editor dafür index.html und könnte keine Schrift laden.
     const config = JSON.parse(lies('handy/capacitor.config.json'));
     expect(config.server.html5mode).toBe(false);
+    // Ohne html5mode liefert Capacitor Pfade ohne Punkt gar nicht aus (APK 0.1.1: code -26).
+    // Darum wird die Bedingung im Quelltext der Hülle erweitert, bevor Gradle sie baut.
+    const ablauf = lies('.github/workflows/android.yml');
+    expect(ablauf.indexOf('node capacitor-anpassen.mjs')).toBeGreaterThan(ablauf.indexOf('npm install'));
+    expect(ablauf.indexOf('node capacitor-anpassen.mjs')).toBeLessThan(ablauf.indexOf('npx cap add android'));
+    expect(lies('handy/capacitor-anpassen.mjs')).toContain('if (periodIndex >= 0 || !html5mode)');
     expect(lies('public/sdkjs/common/AllFonts.js')).toMatch(/__fonts_files"\] = \[\s*"000"/);
   });
 
