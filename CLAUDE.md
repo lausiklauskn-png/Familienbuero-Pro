@@ -116,11 +116,23 @@ speichern – ohne Konto, ohne Server, alles auf dem Gerät. Schwester-App der F
   Plugin `@capacitor/app`, Inhalt über `@capacitor/filesystem`. Windows: `fileAssociations` in
   `tauri.conf.json` (docx, xlsx, pptx), Pfad aus der Befehlszeile (`startdatei_*` in `main.rs`).
 
+## Dauerhafte Android-Signatur (Klaus 27.11.2026: „Eins mit festem Schlüssel“)
+
+- Signier-Bausteine aus dem Datei-Organizer übernommen, nur Namen und Kennung geändert: `tools/signing/` (`cli.mjs` init/check/sign-apk,
+  `identity.mjs`, `apk.mjs`, Probe `test-identity.mjs`). Freigabe `FB_SIGNING_UNLOCK` (64 Hexzeichen) nur als Secret der Umgebung
+  `android-production`, nie im Repo oder Chat.
+- `signing-identity.yml` (von Hand, nur main): **initialize** einmal → verschlüsseltes Paket und Fingerabdruck als PR
+  `signing/android-identity`; danach **check**. Test-APKs (`android-v…-test`) und Windows-Releases verhindern das Anlegen nicht.
+- `android.yml` mit `veroeffentlichen = ja` (nur main): Release-APK, signiert, Release **`android-v<Fassung>`** (keine Vorabfassung),
+  Download bytegleich geprüft. Ohne „ja“ nur die Test-APK als Lauf-Anhang (kein Release mehr). versionName/versionCode kommen jetzt aus
+  `handy/package.json` (Code = x·10000 + y·100 + z). Der Marktplatz Spezial (family-project) spiegelt die signierte APK von selbst.
+- ⚠ Wer die Freigabe verliert, kann nach der ersten signierten Ausgabe keine Updates mehr ausgeben. Updates über family-projekt.de
+  (eigener Feed in der App) sind noch nicht gebaut. Eine schon installierte Test-APK muss einmal deinstalliert werden.
+
 ## Offen
 
 - **Hüllen am Gerät ungeprüft:** weder das Windows-Programm noch die APK wurden je gestartet.
-- **Dauerhafte Android-Signatur** und **Updates über family-projekt.de**: Vorgehen wie in der Familienakte
-  (`docs/UPDATES-EIGENER-SERVER.md` dort, BookLedgerPro „Für eine weitere App“); braucht Klaus' Schlüssel.
+- **Updates über family-projekt.de** (Feed in der App): Vorgehen wie in der Familienakte (`docs/UPDATES-EIGENER-SERVER.md` dort).
 - **Verlaufsseite** (`history`) trägt noch Kopfleiste und Sprachmenü der Vorlage.
 - **Ostasiatische Schriften** (rund 100 MB) liegen noch im Paket; Entfernen heißt Katalog, Auswahl-Blob und
   Vorschaubilder gemeinsam ändern (`docs/fonts.md`).

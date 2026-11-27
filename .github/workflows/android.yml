@@ -5,9 +5,12 @@ name: Familienbüro Pro für Android
 # Start von Hand (Actions -> dieser Ablauf -> "Run workflow"). Mit
 # veroeffentlichen = ja entsteht zusätzlich ein Release android-v<Fassung>-test.
 #
-# ACHTUNG: Die APK trägt vorerst einen Wegwerf-Schlüssel dieses Laufs. Eine
-# spätere APK lässt sich darüber nicht installieren -- vorher deinstallieren.
-# Eine dauerhafte Signatur braucht einen hinterlegten Schlüssel.
+# Ohne „ja“: Test-APK (Debug, Wegwerf-Schlüssel) nur als Lauf-Anhang.
+# Mit „ja“ (nur von main, Klaus 27.11.2026): Release-APK, signiert mit der dauerhaften
+# Identität (signing/, angelegt über signing-identity.yml, Freigabe FB_SIGNING_UNLOCK der
+# Umgebung android-production), veröffentlicht als Release android-v<Fassung>. Von dort holt sie
+# der Marktplatz Spezial (family-project server/spezial). Eine veröffentlichte Fassung nicht
+# erneut ausgeben, für eine neue die Fassung erhöhen.
 
 on:
   # Auf den Arbeitszweigen der Android-Fassung baut jeder Stand von selbst,
@@ -64,12 +67,34 @@ jobs:
           node capacitor-anpassen.mjs
           npx cap add android
           node manifest-anpassen.mjs android/app/src/main/AndroidManifest.xml
+          # Familienbüro Pro: Fassung aus handy/package.json in die APK (sonst 1.0 / Code 1). Code = x*10000 + y*100 + z.
+          fassung=$(node -p "require('./package.json').version")
+          IFS=. read -r a b c <<<"$fassung"
+          code=$((a * 10000 + b * 100 + c))
+          grep -q 'versionCode 1$' android/app/build.gradle && grep -q 'versionName "1.0"' android/app/build.gradle \
+            || { echo 'build.gradle sieht anders aus als erwartet (versionCode/versionName)'; exit 1; }
+          sed -i -e "s/versionCode 1$/versionCode $code/" -e "s/versionName \"1.0\"/versionName \"$fassung\"/" android/app/build.gradle
+          grep -n 'versionCode\|versionName' android/app/build.gradle
           npx capacitor-assets generate --android --iconBackgroundColor '#1f5fa6' --iconBackgroundColorDark '#0b3154'
           npx cap sync android
 
       - name: APK bauen
         working-directory: handy/android
         run: ./gradlew --no-daemon assembleDebug
+
+      - name: Unsignierte Release-APK bauen
+        if: inputs.veroeffentlichen == 'ja'
+        working-directory: handy/android
+        run: ./gradlew --no-daemon assembleRelease
+
+      - name: Unsignierte Release-APK weitergeben
+        if: inputs.veroeffentlichen == 'ja'
+        uses: actions/upload-artifact@v7
+        with:
+          name: unsigned-release-apk
+          path: handy/android/app/build/outputs/apk/release/app-release-unsigned.apk
+          if-no-files-found: error
+          retention-days: 3
 
       - name: Fassung und Datei feststellen
         id: datei
@@ -90,14 +115,72 @@ jobs:
           path: ${{ steps.datei.outputs.datei }}
           retention-days: 14
 
-      - name: Als Release veröffentlichen
-        if: inputs.veroeffentlichen == 'ja'
+  veroeffentlichen:
+    name: Signieren und veröffentlichen
+    needs: apk
+    if: inputs.veroeffentlichen == 'ja' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment: android-production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - name: Dauerhafte Identität vorhanden, Fassung noch nicht ausgegeben
         env:
           GH_TOKEN: ${{ github.token }}
+        shell: bash
         run: |
           set -euo pipefail
-          tag="android-v${{ steps.datei.outputs.fassung }}-test"
-          gh release create "$tag" "${{ steps.datei.outputs.datei }}" \
-            --target "$GITHUB_SHA" --prerelease \
-            --title "Familienbüro Pro für Android ${{ steps.datei.outputs.fassung }} (Test)" \
-            --notes "Test-APK mit Wegwerf-Schlüssel dieses Laufs. Vor einer späteren APK deinstallieren."
+          for f in signing/android-release.enc.json signing/android-certificate.json; do
+            test -f "$f" || { echo "::error::Fehlt: $f – erst „Dauerhafte Familienbüro-Pro-Signieridentität“ mit initialize laufen lassen"; exit 1; }
+          done
+          fassung=$(node -p "require('./handy/package.json').version")
+          if gh release view "android-v$fassung" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "::error::android-v$fassung ist schon veröffentlicht – Fassung erhöhen"; exit 1
+          fi
+          echo "FASSUNG=$fassung" >> "$GITHUB_ENV"
+          node --test tools/signing/test-identity.mjs
+      - uses: actions/download-artifact@v4
+        with:
+          name: unsigned-release-apk
+          path: unsigned-apk
+      - name: Android-Signierwerkzeuge
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install 'build-tools;36.0.0'
+          test -x "$ANDROID_HOME/build-tools/36.0.0/apksigner"
+          test -x "$ANDROID_HOME/build-tools/36.0.0/aapt"
+      - name: Mit der dauerhaften Identität signieren und prüfen
+        env:
+          FB_SIGNING_UNLOCK: ${{ secrets.FB_SIGNING_UNLOCK }}
+          FB_RELEASE_COMMIT: ${{ github.sha }}
+          TMPDIR: ${{ runner.temp }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          export FB_APKSIGNER="$ANDROID_HOME/build-tools/36.0.0/apksigner"
+          export FB_AAPT="$ANDROID_HOME/build-tools/36.0.0/aapt"
+          export FB_RELEASE_TAG="v$FASSUNG"
+          mkdir release-files
+          node tools/signing/cli.mjs sign-apk unsigned-apk/app-release-unsigned.apk "release-files/Familienbuero-Pro-$FASSUNG.apk"
+      - name: Als Release veröffentlichen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          apk="release-files/Familienbuero-Pro-$FASSUNG.apk"
+          gh release create "android-v$FASSUNG" "$apk" "$apk.sha256" "$apk.json" \
+            --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+            --title "Familienbüro Pro für Android $FASSUNG" \
+            --notes "Signiert mit der dauerhaften Familienbüro-Pro-Identität. SHA-256: $(cut -d' ' -f1 "$apk.sha256")"
+          # Gegenprobe: der Download ist bytegleich
+          mkdir geholt && gh release download "android-v$FASSUNG" --repo "$GITHUB_REPOSITORY" --pattern "*.apk" --dir geholt
+          cmp "geholt/Familienbuero-Pro-$FASSUNG.apk" "$apk"
