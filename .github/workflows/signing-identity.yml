@@ -21,6 +21,7 @@ jobs:
   identity:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
+    timeout-minutes: 20
     environment: android-production
     steps:
       - uses: actions/checkout@v4
